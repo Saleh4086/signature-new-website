@@ -314,7 +314,7 @@ if(liveBtn){
         message: fields.message || fields.notes || fields.property_details || fields.repair_details || '',
         page: window.location.pathname,
         source: `Website - ${document.title}`,
-        consent_to_contact: fields.consent_to_contact !== 'false'
+        consent_to_contact: fields.consent_to_contact === 'true'
       };
 
       try{
