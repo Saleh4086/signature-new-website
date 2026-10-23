@@ -14,3 +14,20 @@
   text-underline-offset:2px
 }
 .bsai-inline-link:hover{color:#fff2b8}
+
+
+/* Keep the floating concierge available on phones without covering page content. */
+@media(max-width:640px){
+  .bsai-launcher{
+    right:12px;
+    bottom:max(12px,env(safe-area-inset-bottom));
+    width:auto;
+    min-width:92px;
+    max-width:none;
+    padding:11px 14px;
+    font-size:0;
+    line-height:1
+  }
+  .bsai-launcher .bsai-spark{margin-right:6px;font-size:18px}
+  .bsai-launcher::after{content:"Ask AI";font-size:12px;letter-spacing:.05em}
+}
