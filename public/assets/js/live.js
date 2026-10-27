@@ -217,6 +217,93 @@
     rb.addEventListener('input',calc);rb.addEventListener('change',calc);calc();
   }
 
+  /* ---------- investment hold-period analysis (rent growth, appreciation, paydown, depreciation, passive-loss rules, after-tax sale, IRR, refi) ---------- */
+  const ivf=$('#roi');
+  if(ivf&&$('#iv-big')){
+    const q=n=>$('[name='+n+']',ivf), gv=n=>num(q(n)), sv=n=>{const e=q(n);return e?e.value:''}, ck=n=>{const e=q(n);return !!(e&&e.checked)};
+    const pct=v=>(isFinite(v)?(v*100).toFixed(1)+'%':'—');
+    const irr=cf=>{const npv=r=>cf.reduce((s,c,t)=>s+c/Math.pow(1+r,t),0);let lo=-.99,hi=1.5;if(npv(lo)*npv(hi)>0)return NaN;for(let i=0;i<200;i++){const m=(lo+hi)/2;(npv(lo)*npv(m)<=0)?hi=m:lo=m}return (lo+hi)/2};
+    function ivsim(o){
+      const {price,dp,r0,rent0,vac,mg,mt,tax,ins0,hoa0,close,rehab,N,ap,rg,sellc,land,fedR,caR,mfj,magi0,pal,refi,refiR,refiY,refiC}=o;
+      const L=price*(1-dp), cash0=price*dp+price*close+rehab, basis=price+price*close+rehab, depY=basis*(1-land)/27.5;
+      let rate=r0/12, pi=dp>=1?0:(rate?L*rate/(1-Math.pow(1+rate,-360)):L/360), bal=L, nLeft=360, pi0=pi, pi1=pi;
+      let rent=rent0, ins=ins0, hoa=hoa0, magi=magi0, susp=0, accDep=0, refiCost=0; const Y=[], ord=fedR+caR;
+      for(let y=1;y<=N;y++){
+        let yInt=0,yPrin=0,yDS=0,extra=0;
+        for(let m=1;m<=12;m++){const mm=(y-1)*12+m;
+          if(refi&&mm===refiY*12+1&&bal>0){extra=bal*refiC;refiCost+=extra;rate=refiR/12;nLeft=361-mm;pi=rate?bal*rate/(1-Math.pow(1+rate,-nLeft)):bal/nLeft;pi1=pi}
+          if(bal>0){const int=bal*rate,prin=Math.min(bal,pi-int);bal-=prin;yInt+=int;yPrin+=prin;yDS+=int+prin}}
+        const gross=rent*12, egi=gross*(1-vac), opex=egi*mg+gross*mt+price*tax*Math.pow(1.02,y-1)+ins+hoa*12, noi=egi-opex, cf=noi-yDS-extra;
+        const dep=Math.min(depY,basis*(1-land)-accDep); accDep+=dep;
+        let ti=noi-yInt-dep, taxEff=0;
+        if(ti<0){const loss=-ti;let allow=pal==='rep'?Infinity:pal==='susp'?0:Math.max(0,25000-.5*Math.max(0,magi-100000));const use=Math.min(loss,allow);taxEff=use*ord;susp+=loss-use}
+        else{const off=Math.min(ti,susp);susp-=off;taxEff=-(ti-off)*ord}
+        const at=cf+taxEff;
+        Y.push({y,rentMo:rent,noi,ds:yDS+extra,int:yInt,prin:yPrin,cf,dep,ti,taxEff,at,bal,val:price*Math.pow(1+ap,y)});
+        rent*=1+rg; ins*=1+Math.max(.03,rg); hoa*=1.03; magi*=1.03;
+      }
+      const last=Y[N-1], sale=last.val, sc=sale*sellc, adj=basis-accDep, gain=sale-sc-adj, recap=Math.max(0,Math.min(gain,accDep)), rest=Math.max(0,gain-recap);
+      const inc=magi/Math.pow(1.03,1);
+      const ltcg=(inc+gain>(mfj?600000:500000))?.20:.15, niitThr=mfj?250000:200000, niit=Math.max(0,Math.min(gain,inc+gain-niitThr))*.038;
+      const fedT=recap*Math.min(.25,fedR)+rest*ltcg+niit, caT=Math.max(0,gain)*caR, suspBen=susp*ord, saleTax=Math.max(0,fedT+caT)-suspBen;
+      const netSale=sale-sc-last.bal, atSale=netSale-saleTax;
+      const cfAT=[-cash0,...Y.map(x=>x.at)]; cfAT[N]+=atSale;
+      const cfPre=[-cash0,...Y.map(x=>x.cf)]; cfPre[N]+=netSale;
+      const sumAT=Y.reduce((s,x)=>s+x.at,0), sumCF=Y.reduce((s,x)=>s+x.cf,0), sumTax=Y.reduce((s,x)=>s+x.taxEff,0), sumPrin=Y.reduce((s,x)=>s+x.prin,0);
+      return {Y,cash0,depY,accDep,sale,sc,adj,gain,recap,rest,fedT,caT,suspBen,susp,saleTax,netSale,atSale,profit:sumAT+atSale-cash0,irrAT:irr(cfAT),irrPre:irr(cfPre),
+        sumAT,sumCF,sumTax,sumPrin,appr:sale-price,eq:sale-last.bal,mult:(sumAT+atSale)/cash0,pi0,pi1,refiCost,ltcg,niit};
+    }
+    const read=()=>({price:gv('price'),dp:Math.min(1,gv('down')/100),r0:gv('rate')/100,rent0:gv('rent'),vac:gv('vacancy')/100,mg:gv('mgmt')/100,mt:gv('maint')/100,tax:gv('tax')/100,
+      ins0:gv('ins'),hoa0:gv('hoa'),close:gv('closing')/100,rehab:gv('rehab'),N:Math.max(1,Math.min(30,Math.round(gv('hold'))||1)),ap:gv('apprec')/100,rg:gv('rentg')/100,
+      sellc:gv('sellc')/100,land:Math.min(.9,gv('land')/100),fedR:(parseFloat(sv('fed'))||0)/100,caR:(parseFloat(sv('ca'))||0)/100,mfj:sv('filing')!=='single',magi0:gv('magi'),pal:sv('pal'),
+      refi:ck('refion'),refiR:gv('refirate')/100,refiY:Math.max(1,Math.min(29,Math.round(gv('refiyear'))||1)),refiC:gv('reficost')/100});
+    const rr=q('refirate'), r3=q('rate'); if(rr){rr.dataset.auto='1';rr.addEventListener('input',e=>{if(e.isTrusted)rr.dataset.auto='0'})}
+    const syncRefi=()=>{if(rr&&rr.dataset.auto==='1'&&r3)rr.value=Math.max(3,num(r3)-1).toFixed(2)};
+    const setK=(id,v,c)=>{const el=$(id);el.querySelector('b').textContent=v;if(c!==undefined){el.classList.toggle('pos',c>0);el.classList.toggle('neg',c<0)}};
+    const sg=v=>(v<0?'−':'+')+money(Math.abs(v));
+    const calc=()=>{
+      syncRefi();
+      const o=read(), R=ivsim(o), N=o.N, y1=R.Y[0];
+      $('#iv-head').textContent='If you hold '+N+' year'+(N>1?'s':'')+' and sell: annual return after tax (IRR)';
+      $('#iv-big').textContent=isFinite(R.irrAT)?pct(R.irrAT):'—'; $('#iv-big').style.color=R.irrAT>=0?'var(--aqua-2)':'#ff9c86';
+      $('#iv-sub').innerHTML='You put in <b>'+money(R.cash0)+'</b>. After '+N+' year'+(N>1?'s':'')+' of cash flow, taxes and an after-tax sale you get back about <b>'+money(R.sumAT+R.atSale)+'</b>: a profit of <b>'+money(R.profit)+'</b> under these assumptions.';
+      setK('#iv-profit',money(R.profit),R.profit); setK('#iv-eq',money(R.eq)); setK('#iv-mult',isFinite(R.mult)?R.mult.toFixed(2)+'×':'—',R.mult-1); setK('#iv-pre',pct(R.irrPre),R.irrPre);
+      // where the return comes from
+      const parts=[['Appreciation',R.appr],['Loan paydown',R.sumPrin],['Tax savings from depreciation & interest',R.sumTax+R.suspBen],['Cash flow before tax',R.sumCF],['Closing costs & rehab at purchase',-(o.price*o.close+o.rehab)],['Selling costs',-R.sc],['Tax on the sale',-(R.fedT+R.caT)]];
+      const mx=Math.max(...parts.map(p=>Math.abs(p[1])),1);
+      $('#iv-cmp').innerHTML='<div class="rb-cmp-h">Where the '+N+'-year profit comes from</div>'+parts.map(([l,v])=>'<div class="iv-bar'+(v<0?' neg':'')+'"><span>'+l+'</span><div><i style="width:'+Math.max(1.5,Math.abs(v)/mx*100).toFixed(1)+'%"></i></div><b>'+sg(v)+'</b></div>').join('')+
+        '<div class="iv-bar tot"><span>Total profit after tax</span><div></div><b>'+sg(R.profit)+'</b></div><small>Profit is what you get back beyond the '+money(R.cash0)+' you put in (down payment, closing costs and rehab). Rehab that raises the value or rent isn\'t counted unless you add it to the price or rent.</small>';
+      $('#iv-cf1').textContent=money(y1.cf/12)+'/mo'; $('#iv-tx1').textContent=(y1.taxEff>=0?'saves ':'costs ')+money(Math.abs(y1.taxEff)/12)+'/mo'+(o.pal==='susp'||(y1.ti<0&&y1.taxEff===0)?' (loss carried forward)':'');
+      $('#iv-at1').textContent=money(y1.at/12)+'/mo'; const pos=R.Y.find(x=>x.cf>0), posAT=R.Y.find(x=>x.at>0);
+      $('#iv-pos').textContent=(pos?'Year '+pos.y+' before tax':'Not within '+N+' yrs before tax')+(posAT?' · year '+posAT.y+' after tax':'');
+      // refinance what-if
+      const A=ivsim(Object.assign({},o,{refi:true})), B0=ivsim(Object.assign({},o,{refi:false})), rb=$('#iv-refi');
+      if(o.refiR>=o.r0) rb.innerHTML='<b>Refinance:</b> set a new rate below today\'s '+(o.r0*100).toFixed(2)+'% to see the effect.';
+      else if(o.refiY>=N) rb.innerHTML='<b>Refinance:</b> year '+o.refiY+' is past your '+N+'-year hold. Set an earlier year.';
+      else{const yA=A.Y[o.refiY]; rb.innerHTML='<b>If rates drop to '+(o.refiR*100).toFixed(2)+'% and you refinance in year '+o.refiY+':</b> principal &amp; interest falls about <b>'+money(B0.pi0-A.pi1)+'/mo</b>, year-'+(o.refiY+1)+' cash flow becomes <b>'+money(yA.cf/12)+'/mo</b> before tax, and the after-tax return moves from '+pct(B0.irrAT)+' to <b>'+pct(A.irrAT)+'</b> (profit '+sg(A.profit-B0.profit)+', after '+money(A.refiCost)+' in refi costs).'+(o.refi?' <span class="rb-tag">included above</span>':' <span class="rb-tag off">not included above</span>')}
+      // year table + sale math
+      const c=v=>'<td'+(v<0?' class="n"':'')+'>'+money(v)+'</td>';
+      $('#iv-yr').innerHTML='<tr class="h"><td>Year</td><td>Rent/mo</td><td>NOI</td><td>Loan pmts</td><td>Cash flow</td><td>Tax effect</td><td>After tax</td><td>Equity</td></tr>'+R.Y.map(x=>'<tr><td>'+x.y+'</td><td>'+money(x.rentMo)+'</td>'+c(x.noi)+c(x.ds)+c(x.cf)+c(x.taxEff)+c(x.at)+'<td>'+money(x.val-x.bal)+'</td></tr>').join('');
+      const row=(l,v,k)=>'<tr'+(k?' class="'+k+'"':'')+'><td>'+l+'</td><td>'+v+'</td></tr>';
+      $('#iv-sale').innerHTML='<tr class="h"><td colspan="2">Sale in year '+N+'</td></tr>'+row('Sale price ('+(o.ap*100).toFixed(1)+'%/yr growth)',money(R.sale))+row('Selling costs','−'+money(R.sc))+row('Loan payoff','−'+money(R.Y[N-1].bal))+
+        row('Cash from sale before tax',money(R.netSale),'t')+row('Depreciation taken ('+money(R.depY)+'/yr)',money(R.accDep))+row('Taxable gain (price − costs − adjusted basis '+money(R.adj)+')',money(R.gain))+
+        row('Federal: recapture at '+Math.round(Math.min(.25,o.fedR)*100)+'%, gain at '+Math.round(R.ltcg*100)+'%'+(R.niit>0?' + 3.8% NIIT':''),'−'+money(R.fedT))+row('California at '+(o.caR*100).toFixed(1)+'%','−'+money(R.caT))+
+        (R.suspBen>0?row('Carried-forward rental losses used at sale','+'+money(R.suspBen)):'')+row('Cash from sale after tax',money(R.atSale),'t');
+      // chart: after-tax cash flow bars + equity line
+      const W=520,H=220,pl=50,pr=10,pt=10,pb=24, E=R.Y.map(x=>x.val-x.bal), A2=R.Y.map(x=>x.at);
+      const mxv=Math.max(...E,...A2,1)*1.06, mn=Math.min(0,...A2)*1.2, n=R.Y.length, bw=(W-pl-pr)/n;
+      const X=i=>pl+bw*(i+.5), Yp=v=>pt+(mxv-v)/((mxv-mn)||1)*(H-pt-pb);
+      let g='';for(let k=0;k<=4;k++){const v=mn+(mxv-mn)*k/4;g+='<line x1="'+pl+'" x2="'+(W-pr)+'" y1="'+Yp(v)+'" y2="'+Yp(v)+'"/><text x="'+(pl-6)+'" y="'+(Yp(v)+3)+'" text-anchor="end">'+short(v)+'</text>'}
+      let bars='',xl='';R.Y.forEach((x,i)=>{const y0=Yp(0),y1=Yp(x.at);bars+='<rect x="'+(X(i)-bw*.3).toFixed(1)+'" width="'+(bw*.6).toFixed(1)+'" y="'+Math.min(y0,y1).toFixed(1)+'" height="'+Math.max(1,Math.abs(y1-y0)).toFixed(1)+'" fill="'+(x.at<0?'#ff9c86':'var(--aqua)')+'" rx="2"/>';
+        if(n<=12||x.y%5===0||x.y===1)xl+='<text x="'+X(i)+'" y="'+(H-6)+'" text-anchor="middle">'+x.y+'y</text>'});
+      const path=E.map((v,i)=>(i?'L':'M')+X(i).toFixed(1)+' '+Yp(v).toFixed(1)).join('');
+      $('#iv-chart').innerHTML='<svg viewBox="0 0 '+W+' '+H+'" preserveAspectRatio="none" aria-hidden="true"><g class="grid">'+g+'</g>'+xl+'<line x1="'+pl+'" x2="'+(W-pr)+'" y1="'+Yp(0)+'" y2="'+Yp(0)+'" stroke="rgba(255,255,255,.25)"/>'+bars+
+        '<path d="'+path+'" fill="none" stroke="var(--gold)" stroke-width="2.2" vector-effect="non-scaling-stroke"/></svg>';
+      window.BSP_IV_LAST={o,R:{irrAT:R.irrAT,irrPre:R.irrPre,profit:R.profit,eq:R.eq,mult:R.mult,cash0:R.cash0,atSale:R.atSale,netSale:R.netSale,saleTax:R.saleTax,sumAT:R.sumAT,sumCF:R.sumCF,sumTax:R.sumTax,suspBen:R.suspBen,sumPrin:R.sumPrin,appr:R.appr,sc:R.sc,fedT:R.fedT,caT:R.caT,depY:R.depY,y1:R.Y[0]},refi:{irrA:A.irrAT,irrB:B0.irrAT,drop:B0.pi0-A.pi1,dProfit:A.profit-B0.profit}};
+    };
+    ivf.addEventListener('input',calc);ivf.addEventListener('change',calc);calc();
+  }
+
   /* ---------- rates history chart ---------- */
   const COL={MORTGAGE30US:'var(--gold)',MORTGAGE15US:'#7f8bff',DGS10:'var(--aqua)',OBMMIC30YF:'#f08a6c'};
   const NAME={MORTGAGE30US:'30-yr fixed',MORTGAGE15US:'15-yr fixed',DGS10:'10-yr Treasury',OBMMIC30YF:'30-yr daily (OB)'};

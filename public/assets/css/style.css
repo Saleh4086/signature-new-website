@@ -511,3 +511,17 @@ html{-webkit-text-size-adjust:100%;text-size-adjust:100%}html,body{max-width:100
 #rb-tbl tr.t td{font-weight:700;color:var(--text)}
 .rb-life{margin-top:14px}.rb-life b{color:var(--text)}.rb-disc{font-size:.74rem;line-height:1.5}
 @media (max-width:480px){.rb-set,.rb-more-in{grid-template-columns:1fr}.rb-tool .tool-in{gap:14px}}
+/* investment calculator: hold-period analysis */
+.iv-tool .tool-out>div+.iv-hold{margin-top:26px;padding-top:24px;border-top:1px solid var(--line)}
+.iv-hold .out-label{line-height:1.35}
+.iv-bar{display:grid;grid-template-columns:minmax(0,1.25fr) minmax(50px,1fr) auto;gap:10px;align-items:center;font-size:.86rem;margin:7px 0}
+.iv-bar>div{height:9px;border-radius:6px;background:rgba(255,255,255,.06);overflow:hidden}.iv-bar i{display:block;height:100%;border-radius:6px;background:var(--aqua)}
+.iv-bar.neg i{background:#ff9c86}.iv-bar b{font-variant-numeric:tabular-nums;white-space:nowrap}.iv-bar.neg b{color:#ffb4a3}
+.iv-bar.tot{border-top:1px solid var(--line);padding-top:8px;margin-top:10px;font-weight:600}.iv-bar.tot>div{background:none}.iv-bar.tot b{color:var(--gold-2)}
+.iv-scroll{overflow-x:auto;-webkit-overflow-scrolling:touch;margin-bottom:12px}
+.iv-yr{min-width:560px;font-size:.8rem}.iv-yr td{text-align:right;padding:7px 6px;white-space:nowrap}.iv-yr td:first-child{text-align:left}.iv-yr td.n{color:#ffb4a3}
+.iv-yr tr.h td{color:var(--muted);font-weight:600}
+@media (max-width:480px){.iv-bar{grid-template-columns:1fr auto;}.iv-bar>div{grid-column:1/-1;order:3}}
+#iv-sale td{font-size:.86rem;padding:8px 0}#iv-sale td:last-child{white-space:nowrap;padding-left:10px;text-align:right}
+#iv-sale tr.h td{color:var(--aqua-2);font-size:.74rem;letter-spacing:.14em;text-transform:uppercase;padding-top:14px;font-weight:600}#iv-sale tr.t td{font-weight:700;color:var(--text)}
+.iv-tool .tool-in>fieldset{grid-column:1/-1}.iv-tool .tool-grid>*{min-width:0}.iv-tool .tool-out>*{min-width:0;max-width:100%}
