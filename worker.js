@@ -1,4 +1,5 @@
 const PUBLIC_PAGE_PATHS=new Set(["/about","/admin-hub","/ai-tools","/antioch","/apply","/areas/antioch","/areas/bay-point","/areas/brentwood","/areas/byron","/areas/concord","/areas/discovery-bay","/areas/oakley","/areas/pittsburg","/areas/walnut-creek","/articles/brentwood-neighborhood-home-buying-guide","/articles/california-landlord-property-management-guide","/articles/discovery-bay-real-estate-guide","/articles/east-bay-home-buying-guide","/articles/first-time-home-buyer-guide-california","/articles/mortgage-rate-payment-planning-guide","/articles/rental-property-investment-analysis","/bay-point","/blog","/brentwood-neighborhood-home-buying-guide","/brentwood","/buyers","/byron","/california-landlord-property-management-guide","/concord","/contact","/discovery-bay-real-estate-guide","/discovery-bay","/east-bay-home-buying-guide","/education","/first-time-home-buyer-guide-california","/home-value","/index","/INSTALL_SNIPPET","/listing-manager","/mortgage-calculator","/mortgage-rate-payment-planning-guide","/oakley","/pittsburg","/preview","/privacy-policy","/properties","/property-management","/rental-evaluation","/rental-property-investment-analysis","/repair-request","/search","/sellers","/service-areas","/terms","/walnut-creek"]);
+const CANONICAL_PAGE_PATHS=new Map([["/INSTALL_SNIPPET","/INSTALL_SNIPPET.html"],["/about","/about.html"],["/ai-tools","/ai-tools.html"],["/antioch","/areas/antioch.html"],["/apply","/apply.html"],["/areas/antioch","/areas/antioch.html"],["/areas/bay-point","/areas/bay-point.html"],["/areas/brentwood","/areas/brentwood.html"],["/areas/byron","/areas/byron.html"],["/areas/concord","/areas/concord.html"],["/areas/discovery-bay","/areas/discovery-bay.html"],["/areas/oakley","/areas/oakley.html"],["/areas/pittsburg","/areas/pittsburg.html"],["/areas/walnut-creek","/areas/walnut-creek.html"],["/articles/brentwood-neighborhood-home-buying-guide","/articles/brentwood-neighborhood-home-buying-guide.html"],["/articles/california-landlord-property-management-guide","/articles/california-landlord-property-management-guide.html"],["/articles/discovery-bay-real-estate-guide","/articles/discovery-bay-real-estate-guide.html"],["/articles/east-bay-home-buying-guide","/articles/east-bay-home-buying-guide.html"],["/articles/first-time-home-buyer-guide-california","/articles/first-time-home-buyer-guide-california.html"],["/articles/mortgage-rate-payment-planning-guide","/articles/mortgage-rate-payment-planning-guide.html"],["/articles/rental-property-investment-analysis","/articles/rental-property-investment-analysis.html"],["/bay-point","/areas/bay-point.html"],["/blog","/blog.html"],["/brentwood","/areas/brentwood.html"],["/brentwood-neighborhood-home-buying-guide","/articles/brentwood-neighborhood-home-buying-guide.html"],["/buyers","/buyers.html"],["/byron","/areas/byron.html"],["/california-landlord-property-management-guide","/articles/california-landlord-property-management-guide.html"],["/concord","/areas/concord.html"],["/contact","/contact.html"],["/discovery-bay","/areas/discovery-bay.html"],["/discovery-bay-real-estate-guide","/articles/discovery-bay-real-estate-guide.html"],["/east-bay-home-buying-guide","/articles/east-bay-home-buying-guide.html"],["/education","/education.html"],["/first-time-home-buyer-guide-california","/articles/first-time-home-buyer-guide-california.html"],["/home-value","/home-value.html"],["/index","/"],["/mortgage-calculator","/mortgage-calculator.html"],["/mortgage-rate-payment-planning-guide","/articles/mortgage-rate-payment-planning-guide.html"],["/oakley","/areas/oakley.html"],["/pittsburg","/areas/pittsburg.html"],["/preview","/preview.html"],["/privacy-policy","/privacy-policy.html"],["/properties","/properties.html"],["/property-management","/property-management.html"],["/rental-evaluation","/rental-evaluation.html"],["/rental-property-investment-analysis","/articles/rental-property-investment-analysis.html"],["/repair-request","/repair-request.html"],["/search","/search.html"],["/sellers","/sellers.html"],["/service-areas","/service-areas.html"],["/terms","/terms.html"],["/walnut-creek","/areas/walnut-creek.html"]]);
 // Blackstone Signature Properties & Investments Worker: website assets, Gemini chat, mortgage-rate API
 const SYSTEM_PROMPT = `
 You are the Blackstone Signature Properties & Investments AI Concierge for Blackstone Signature Properties & Investments,
@@ -974,19 +975,53 @@ const worker = {
       return handleRates();
     }
 
+    // SEO: 301 duplicate page URLs (/index.html, extensionless, trailing slash,
+    // root-level copies of area/article pages) to the URL in each page's canonical tag.
+    if((request.method==='GET'||request.method==='HEAD')&&!url.pathname.startsWith('/api/')){
+      const pageKey=normalized.replace(/\.html$/,'');
+      const canonicalPath=pageKey==='/'?'/':CANONICAL_PAGE_PATHS.get(pageKey);
+      if(canonicalPath&&url.pathname!==canonicalPath){
+        return new Response(null,{status:301,headers:{'Location':canonicalPath+url.search,'Cache-Control':'public, max-age=3600'}});
+      }
+    }
     if(normalized==='/'||PUBLIC_PAGE_PATHS.has(normalized)){
       const pageUrl=new URL(request.url);pageUrl.pathname=normalized==='/'?'/index.html':normalized+'.html';
       return env.ASSETS.fetch(new Request(pageUrl,request));
     }
-    return env.ASSETS.fetch(request);
+    const assetResponse=await env.ASSETS.fetch(request);
+    // SEO: real 404 page with site navigation instead of an empty body.
+    if(assetResponse.status===404&&(request.method==='GET'||request.method==='HEAD')&&!url.pathname.startsWith('/api/')){
+      const notFoundUrl=new URL(request.url);notFoundUrl.pathname='/404.html';notFoundUrl.search='';
+      const page=await env.ASSETS.fetch(new Request(notFoundUrl));
+      if(page.ok){
+        const headers=new Headers(page.headers);headers.set('Cache-Control','no-store');headers.set('X-Robots-Tag','noindex');
+        headers.delete('ETag');headers.delete('Last-Modified');
+        return new Response(request.method==='HEAD'?null:page.body,{status:404,headers});
+      }
+    }
+    return assetResponse;
   }
 };
+
+// SEO/performance: browser caching for static files. HTML keeps the asset
+// default (max-age=0, must-revalidate) so page edits show up immediately.
+const LONG_CACHE_EXT=/\.(?:png|jpe?g|webp|gif|svg|ico|avif|woff2?|ttf|otf)$/i;
+const MEDIUM_CACHE_EXT=/\.(?:css|js|webmanifest)$/i;
+function staticCacheControl(pathname,status){
+  if(status!==200&&status!==304)return null;
+  if(pathname.startsWith('/api/'))return null;
+  if(LONG_CACHE_EXT.test(pathname))return 'public, max-age=2592000, stale-while-revalidate=86400';
+  if(MEDIUM_CACHE_EXT.test(pathname))return 'public, max-age=86400, stale-while-revalidate=604800';
+  return null;
+}
 
 export default {
  async fetch(request,env){
   let response;
   try{response=await worker.route(request,env)}catch{response=json({error:'Service unavailable. Please try again later.'},503)}
   const headers=new Headers(response.headers);
+  const staticCache=staticCacheControl(new URL(request.url).pathname,response.status);
+  if(staticCache)headers.set('Cache-Control',staticCache);
   headers.set('X-Content-Type-Options','nosniff');headers.set('Referrer-Policy','strict-origin-when-cross-origin');
   if(!headers.has('Content-Security-Policy'))headers.set('Content-Security-Policy',"object-src 'none'; base-uri 'self'");
   return new Response(response.body,{status:response.status,statusText:response.statusText,headers});
