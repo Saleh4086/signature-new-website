@@ -41,7 +41,57 @@
     if(qr!=null)inp.dispatchEvent(new Event('input',{bubbles:true}));
   });
   const term=$('#m4'), m3=$('#m3'), p15=S.MORTGAGE15US;
-  if(term&&m3&&p30&&p15&&qr==null){term.addEventListener('change',()=>{if(m3.dataset.auto!=='1')return;const v=term.value==='15'?p15:p30;m3.value=v.value;const h=$('.rate-hint[data-for="m3"]');if(h)h.innerHTML='Prefilled with the Freddie Mac '+(term.value==='15'?'15':'30')+'-yr average, <b>'+v.value.toFixed(2)+'%</b> (week of '+fdate(v.date)+'). <a href="rates.html">Rates &amp; sources</a>.';m3.dispatchEvent(new Event('input',{bubbles:true}))})}
+  let LIVE=null; // daily values from /api/rates once they load (see below)
+  if(term&&m3&&p30&&p15&&qr==null){term.addEventListener('change',()=>{if(m3.dataset.auto!=='1')return;const h=$('.rate-hint[data-for="m3"]');
+    if(term.value!=='15'&&LIVE){m3.value=LIVE.rate30;if(h)h.innerHTML=liveHint()}
+    else{const v=term.value==='15'?p15:p30;m3.value=v.value;if(h)h.innerHTML='Prefilled with the Freddie Mac '+(term.value==='15'?'15':'30')+'-yr average, <b>'+v.value.toFixed(2)+'%</b> (week of '+fdate(v.date)+'). <a href="rates.html">Rates &amp; sources</a>.'}
+    m3.dispatchEvent(new Event('input',{bubbles:true}))})}
+
+  /* ---------- daily rates from Sal's Worker (/api/rates = Mortgage News Daily daily index) ----------
+     Fetched on load. Only fields the feed really has are used (30-yr fixed + 30-yr FHA, each with its own date).
+     Everything else, the chart history and any failure/fallback/stale case keep the build-time values. */
+  const SRC='Mortgage News Daily', SRCURL='https://www.mortgagenewsdaily.com/mortgage-rates';
+  const mdy=s=>{const m=/^(\d{1,2})\/(\d{1,2})\/(\d{2}|\d{4})$/.exec(String(s||'').trim());if(!m)return null;const y=m[3].length===2?2000+(+m[3]):+m[3];return y+'-'+('0'+m[1]).slice(-2)+'-'+('0'+m[2]).slice(-2)};
+  const okRate=v=>typeof v==='number'&&isFinite(v)&&v>=1&&v<=20;
+  const okDate=d=>!!d&&!isStale({date:d,freq:'daily'})&&parse(d)-today<2*DAY;
+  const sdate=d=>{const [,m,dd]=d.split('-');return MON[+m-1]+' '+(+dd)};
+  const dnH=c=>{if(typeof c!=='number'||!isFinite(c))return '';if(Math.abs(c)<0.005)return '<span class="dn flat">unch</span>';const u=c>0;return '<span class="dn '+(u?'up':'down')+'"><span aria-hidden="true">'+(u?'▲':'▼')+'</span><span class="sr">'+(u?'up':'down')+'</span> '+Math.abs(c).toFixed(2)+'</span>'};
+  const liveHint=()=>'Prefilled with the '+SRC+' 30-yr fixed daily index, <b>'+LIVE.rate30.toFixed(2)+'%</b> ('+fdate(LIVE.d30)+'). <a href="rates.html">Rates &amp; sources</a>.';
+  function applyLive(j){
+    if(!j||typeof j!=='object'||j.fallback===true||/not\s*live/i.test(String(j.updated))||!okRate(j.rate30))return;
+    const d30=mdy(j.updated);if(!okDate(d30))return;
+    const dF=mdy(j.fhaUpdated||j.updated),fha=okRate(j.fha30)&&okDate(dF)?j.fha30:null;
+    const url=/^https:\/\/www\.mortgagenewsdaily\.com\//.test(String(j.sourceUrl||''))?j.sourceUrl:SRCURL;
+    LIVE={rate30:j.rate30,ch30:j.change30,d30,fha,chF:j.changeFha30,dF};
+    document.documentElement.dataset.liveRates=d30;
+    // ticker: daily items first, build-time items follow with their own sources/dates
+    $$('.tick-set').forEach((set,i)=>{const ti=i?' tabindex="-1"':'';
+      set.insertAdjacentHTML('afterbegin','<a'+ti+' class="ti live" href="rates.html#r-MND30" data-sid="MND30" data-date="'+d30+'"><span class="tn">30-yr fixed · daily</span><b>'+LIVE.rate30.toFixed(2)+'%</b>'+dnH(LIVE.ch30)+'<span class="ts">'+SRC+' · '+sdate(d30)+'</span></a>'+
+        (fha!=null?'<a'+ti+' class="ti live" href="rates.html#r-MNDFHA30" data-sid="MNDFHA30" data-date="'+dF+'"><span class="tn">30-yr FHA · daily</span><b>'+fha.toFixed(2)+'%</b>'+dnH(LIVE.chF)+'<span class="ts">'+SRC+' · '+sdate(dF)+'</span></a>':''))});
+    if(tick&&tick.classList.contains('stale')){tick.classList.remove('stale');const l=$('.tick-lbl span',tick);if(l){l.textContent='Live rates';l.setAttribute('data-fa','نرخ وام')}}
+    // home badge
+    $$('.rate-pill[data-sid="MORTGAGE30US"]').forEach(p=>{p.classList.remove('stale');p.dataset.sid='MND30';p.dataset.date=d30;p.dataset.freq='daily';p.href='rates.html#r-MND30';
+      const lab=$('span',p);if(lab)lab.textContent='30-yr fixed · daily';const b=$('b',p);if(b)b.textContent=LIVE.rate30.toFixed(2)+'%';
+      const dn=$(':scope > .dn',p),nd=dnH(LIVE.ch30);if(dn){if(nd)dn.outerHTML=nd;else dn.remove()}
+      const sm=$('small',p);if(sm)sm.textContent=SRC+' · '+fdate(d30)});
+    // rates page: daily cards above the weekly/daily FRED cards
+    const top=$('.rates-top .rgrid');
+    if(top&&!$('#r-MND30')){
+      const card=(id,name,v,c,d,big)=>'<article class="rcard'+(big?' big':'')+'" id="'+id+'" data-sid="'+id+'" data-date="'+d+'" data-freq="daily"><div class="rc-top"><span class="rc-name">'+name+'</span><span class="rc-freq">daily · live</span></div><div class="rc-val"><b>'+v.toFixed(2)+'<small>%</small></b>'+dnH(c)+'</div><div class="rc-asof">As of <time datetime="'+d+'">'+fdate(d)+'</time>'+(typeof c==='number'&&isFinite(c)?' · prior '+(v-c).toFixed(2)+'%':'')+'</div><ul class="rc-list"><li><span>Updates</span><b>Weekdays, about 4 PM ET</b></li></ul><a class="rc-src" href="'+url+'" rel="noopener" target="_blank">Source: '+SRC+' Rate Index ↗</a></article>';
+      top.insertAdjacentHTML('beforebegin','<p class="note live-note" style="margin:0 0 14px">Daily rate index, loaded live from '+SRC+' when this page opens. The weekly Freddie Mac averages and Optimal Blue indices below are from our last data update, each with its own date.</p><div class="rgrid" id="mnd-live" style="grid-template-columns:repeat(auto-fit,minmax(260px,1fr));margin-bottom:20px">'+
+        card('MND30','30-yr fixed · daily rate index',LIVE.rate30,LIVE.ch30,d30,true)+(fha!=null?card('MNDFHA30','30-yr FHA · daily rate index',fha,LIVE.chF,dF,true):'')+'</div>');
+      const sn2=$('.stale-note');if(sn2)sn2.hidden=true;
+      const cta=$('.phero a.btn-gold[href^="buy.html?rate="]');if(cta){cta.href='buy.html?rate='+LIVE.rate30.toFixed(2)+'#calc';const t=cta.lastChild;if(t&&t.nodeType===3)t.nodeValue=' Open the calculator at '+LIVE.rate30.toFixed(2)+'%'}
+    }
+    // calculator defaults (only fields the visitor hasn't edited, no ?rate= link, 30-yr term)
+    if(qr==null)rateInputs.forEach(inp=>{if(inp.dataset.auto!=='1')return;if(inp.id==='m3'&&term&&term.value==='15')return;
+      inp.value=LIVE.rate30.toFixed(2);const h=$('.rate-hint[data-for="'+inp.id+'"]');if(h)h.innerHTML=liveHint();inp.dispatchEvent(new Event('input',{bubbles:true}))});
+  }
+  if(window.fetch&&($('.tick')||rateInputs.length||$('.rate-pill'))){
+    const ac=window.AbortController?new AbortController():null,to=setTimeout(()=>{ac&&ac.abort()},4000);
+    fetch('/api/rates',{headers:{Accept:'application/json'},credentials:'same-origin',signal:ac?ac.signal:undefined})
+      .then(r=>r.ok?r.json():null).then(j=>{clearTimeout(to);try{applyLive(j)}catch(e){}}).catch(()=>{clearTimeout(to)});
+  }
   // deep-link tabs: ?tool=afford|rentbuy
   const tool=qs.get('tool');if(tool){const b=$('.seg button[data-show="'+tool+'"]');b&&b.click()}
 

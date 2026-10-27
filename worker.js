@@ -223,6 +223,7 @@ function parseMndDailyTable(rawText, headingPattern) {
     .replace(/<[^>]+>/g, " ")
     .replace(/&nbsp;|&#160;/gi, " ")
     .replace(/&amp;/gi, "&")
+    .replace(/&#x0*2B;|&#0*43;|&plus;/gi, "+")
     .replace(/\s+/g, " ");
 
   const headingIndex = normalized.search(headingPattern);
