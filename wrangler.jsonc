@@ -10,5 +10,8 @@
     "html_handling": "none",
     "not_found_handling": "none"
   },
+  "kv_namespaces": [
+    { "binding": "LISTINGS", "id": "1ecc1af7d0084b9588187b77e602fb94" }
+  ],
   "keep_vars": true
 }

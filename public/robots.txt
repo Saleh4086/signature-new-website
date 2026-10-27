@@ -1,4 +1,5 @@
 User-agent: *
 Allow: /
 Disallow: /listing-manager.html
+Disallow: /admin-hub.html
 Sitemap: https://blackstonesignatureproperty.com/sitemap.xml

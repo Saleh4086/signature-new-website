@@ -509,7 +509,7 @@ async function handleChat(request, env) {
           ? { tools: [{ type: "google_search" }] }
           : {}),
         generation_config: {
-          max_output_tokens: 450
+          max_output_tokens: 1400
         }
       })
     });
@@ -909,7 +909,7 @@ async function guardApi(request,env){
   if(route==='/api/chat'&&request.method!=='POST'&&(!['GET','HEAD','OPTIONS'].includes(request.method)||new URL(request.url).searchParams.has('message')))return json({error:'Send chat messages using POST.'},405);
   if(env?.OFFLINE_PREVIEW==='true')return json({error:'Offline preview: requests are not sent.'},503);
   if(!writes)return null;
-  if(request.headers.get('Origin')!==new URL(request.url).origin)return json({error:'Request origin is not allowed.'},403);
+  if(![new URL(request.url).origin,'https://blackstone-preview.gharibyar61.workers.dev'].includes(request.headers.get('Origin')))return json({error:'Request origin is not allowed.'},403);
   if(request.headers.get('Content-Type')?.split(';')[0].trim()!=='application/json')return json({error:'Use application/json.'},415);
   const limit=route==='/api/chat'?131072:32768;
   if(Number(request.headers.get('Content-Length'))>limit)return json({error:'Request is too large.'},413);
@@ -923,6 +923,58 @@ async function guardApi(request,env){
   if(env?.API_RATE_LIMITER?.limit){const result=await env.API_RATE_LIMITER.limit({key:request.headers.get('CF-Connecting-IP')||'unknown'});if(!result.success)return json({error:'Too many requests. Please try again shortly.'},429,{'Retry-After':'60'})}
   return null;
 }
+// ---- Listings API (KV binding LISTINGS) ------------------------------------------------------
+// GET /api/listings   public, cached ~60 s: {listings:[...], updated}
+// PUT /api/listings   admin: replace the whole list {listings:[...], base:<updated the editor last saw>}
+//   The Listing Manager edits its copy and saves the full list, because KV reads can be up to ~60 s stale
+//   (read-modify-write on the server would lose quick successive edits). If the stored list is newer than
+//   'base' (saved from another device), the save is refused with 409 and the current list is returned.
+// Admin = the same Basic auth as /admin-hub (ADMIN_HUB_USERNAME / ADMIN_HUB_PASSWORD), same-origin only.
+const LISTINGS_KEY='listings:v1';
+const LISTING_STATUSES=['for-sale','pending','sold','rental'];
+const LISTINGS_MAX=100;
+function listingsJson(data,status=200,extra={}){return new Response(JSON.stringify(data),{status,headers:{'Content-Type':'application/json; charset=utf-8','Cache-Control':'no-store',...extra}})}
+function listingText(v,max){return String(v==null?'':v).replace(/[\u0000-\u001f\u007f<>]/g,' ').replace(/\s+/g,' ').trim().slice(0,max)}
+function listingUrl(v){const s=String(v==null?'':v).trim();if(!s)return '';if(s.length>800)return null;if(s.startsWith('/')&&!s.startsWith('//'))return s;try{const u=new URL(s);return (u.protocol==='https:'||u.protocol==='http:')&&!u.username&&!u.password?u.href:null}catch{return null}}
+function cleanListing(x,id){
+  if(!x||typeof x!=='object'||Array.isArray(x))return {error:'Invalid listing.'};
+  const status=LISTING_STATUSES.includes(x.status)?x.status:null;if(!status)return {error:'Status must be for-sale, pending, sold or rental.'};
+  const address=listingText(x.address,200);if(address.length<3)return {error:'Address is required.'};
+  const photo=listingUrl(x.photo),url=listingUrl(x.url);if(photo===null)return {error:'Photo must be a web link (https://…).'};if(url===null)return {error:'Property link must be a web link (https://…).'};
+  const out={id:String(id),status,address,price:listingText(x.price,60),meta:listingText(x.meta,300),photo,url};
+  const lat=Number(x.lat),lng=Number(x.lng);if(x.lat!=null&&x.lng!=null&&Number.isFinite(lat)&&Number.isFinite(lng)&&Math.abs(lat)<=90&&Math.abs(lng)<=180){out.lat=lat;out.lng=lng}
+  return {item:out};
+}
+function listingId(v){const s=String(v==null?'':v).replace(/[^0-9A-Za-z_-]/g,'').slice(0,40);return s||null}
+function newListingId(){return Date.now().toString()+Math.floor(Math.random()*1000).toString().padStart(3,'0')}
+async function readListings(env){const raw=await env.LISTINGS.get(LISTINGS_KEY,{cacheTtl:60});if(!raw)return {listings:[],updated:null};try{const d=JSON.parse(raw);return {listings:Array.isArray(d.listings)?d.listings:[],updated:d.updated||null}}catch{return {listings:[],updated:null}}}
+async function handleListings(request,env,authorize){
+  const url=new URL(request.url);
+  if(url.pathname.replace(/\/+$/,'')!=='/api/listings')return listingsJson({error:'Not found.'},404);
+  if(!env?.LISTINGS)return listingsJson({listings:[],updated:null,configured:false},200,{'Cache-Control':'public, max-age=60'});
+  if(request.method==='GET'||request.method==='HEAD'){
+    const d=await readListings(env);
+    return new Response(request.method==='HEAD'?null:JSON.stringify(d),{status:200,headers:{'Content-Type':'application/json; charset=utf-8','Cache-Control':'public, max-age=60, stale-while-revalidate=60','Access-Control-Allow-Origin':'*'}});
+  }
+  if(request.method!=='PUT')return listingsJson({error:'Method not allowed.'},405,{'Allow':'GET, HEAD, PUT'});
+  const auth=authorize(request,env);
+  if(auth.missing)return listingsJson({error:'Admin access is not configured.'},503);
+  if(!auth.ok)return listingsJson({error:'Admin login required.'},401,{'WWW-Authenticate':'Basic realm="Blackstone Signature Properties & Investments Admin", charset="UTF-8"'});
+  if(request.headers.get('Origin')!==url.origin)return listingsJson({error:'Request origin is not allowed.'},403);
+  if(request.headers.get('Content-Type')?.split(';')[0].trim()!=='application/json')return listingsJson({error:'Use application/json.'},415);
+  const text=await request.text();if(text.length>131072)return listingsJson({error:'Request is too large.'},413);
+  let body;try{body=JSON.parse(text)}catch{return listingsJson({error:'Invalid JSON.'},400)}
+  if(!body||!Array.isArray(body.listings))return listingsJson({error:'Send {listings:[...]}.'},400);
+  if(body.listings.length>LISTINGS_MAX)return listingsJson({error:`Up to ${LISTINGS_MAX} listings can be saved.`},400);
+  const out=[],seen=new Set();
+  for(const [n,raw] of body.listings.entries()){const id=listingId(raw&&raw.id)||newListingId()+n;if(seen.has(id))continue;const c=cleanListing(raw,id);if(c.error)return listingsJson({error:`Listing ${n+1}: ${c.error}`},400);seen.add(id);out.push(c.item)}
+  const cur=await readListings(env);const base=typeof body.base==='string'?body.base:null;
+  if(cur.updated&&(!base||cur.updated>base))return listingsJson({error:'The listings were changed from another device or tab. The latest list has been loaded; please make your change again.',conflict:true,listings:cur.listings,updated:cur.updated},409);
+  let updated=new Date().toISOString();if(base&&updated<=base)updated=new Date(Date.parse(base)+1).toISOString();
+  await env.LISTINGS.put(LISTINGS_KEY,JSON.stringify({listings:out,updated}));
+  return listingsJson({ok:true,listings:out,updated});
+}
+// ---- end Listings API ----
 const worker = {
   async route(request, env) {
     const url = new URL(request.url);
@@ -937,6 +989,7 @@ const worker = {
     if(url.pathname.startsWith('/api/')){
       const rejection=await guardApi(request,env); if(rejection)return rejection;
     }
+    if(normalized==='/api/listings'||normalized.startsWith('/api/listings/'))return handleListings(request,env,adminHubAuthorized);
     if (/^\/(?:admin-hub|listing-manager)(?:\.html)?$/.test(normalized)) {
       const auth=adminHubAuthorized(request,env);
       if(auth.missing)return new Response('Admin access is not configured.',{status:503,headers:{'Cache-Control':'no-store'}});
