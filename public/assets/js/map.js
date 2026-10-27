@@ -21,7 +21,24 @@
     if(OWN){const d=mini.parentElement.querySelector('.disclaimer');if(d)d.innerHTML='Pins show <b>Sal’s own listings</b> (For Sale, Pending, Sold and For Rent) placed at their community, not the exact address. Open the map search for details.';mini.setAttribute('aria-label','Map of the East Bay with Sal’s listings')}}
 
   const mapEl=$('#map'); if(!mapEl||!L)return;
-  const map=L.map(mapEl,{zoomControl:true,preferCanvas:false}).setView([37.94,-121.88],10); tiles().addTo(map);
+  const map=L.map(mapEl,{zoomControl:true,preferCanvas:false}).setView([37.94,-121.88],10); const street=tiles().addTo(map);
+  // Map / Satellite / Hybrid toggle. Aerial imagery: Esri World Imagery (free tier, attribution required).
+  const ESRI='https://server.arcgisonline.com/ArcGIS/rest/services/';
+  const esriAttr='Imagery &copy; <a href="https://www.esri.com/">Esri</a>, Maxar, Earthstar Geographics, and the GIS User Community';
+  const aerial=L.tileLayer(ESRI+'World_Imagery/MapServer/tile/{z}/{y}/{x}',{maxZoom:19,maxNativeZoom:18,attribution:esriAttr});
+  const labels=L.tileLayer(ESRI+'Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}',{maxZoom:19,maxNativeZoom:18,pane:'overlayPane',attribution:'Labels &copy; Esri'});
+  const BASES={map:[street],satellite:[aerial],hybrid:[aerial,labels]};
+  let base='map';
+  function setBase(k){if(!BASES[k])k='map';[street,aerial,labels].forEach(l=>{if(map.hasLayer(l))map.removeLayer(l)});BASES[k].forEach(l=>l.addTo(map));base=k;
+    mapEl.classList.toggle('is-aerial',k!=='map');
+    mapEl.querySelectorAll('.basemap button').forEach(b=>b.setAttribute('aria-pressed',b.dataset.base===k));
+    try{sessionStorage.setItem('bsp-basemap',k)}catch(e){}}
+  const BaseCtl=L.Control.extend({options:{position:'topright'},onAdd(){const d=L.DomUtil.create('div','basemap leaflet-bar');d.setAttribute('role','group');d.setAttribute('aria-label','Map style');
+    d.innerHTML='<button type="button" data-base="map" aria-pressed="true">Map</button><button type="button" data-base="satellite" aria-pressed="false">Satellite</button><button type="button" data-base="hybrid" aria-pressed="false">Hybrid</button>';
+    L.DomEvent.disableClickPropagation(d);L.DomEvent.disableScrollPropagation(d);
+    d.addEventListener('click',e=>{const b=e.target.closest('button[data-base]');if(b)setBase(b.dataset.base)});return d}});
+  new BaseCtl().addTo(map);
+  {let k=new URLSearchParams(location.search).get('basemap');if(!k){try{k=sessionStorage.getItem('bsp-basemap')}catch(e){}}if(k&&k!=='map')setBase(k)}
   const markers={}; let hotId=null;
   const F={q:$('#f-q'),city:$('#f-city'),min:$('#f-min'),max:$('#f-max'),beds:$('#f-beds'),baths:$('#f-baths'),type:$('#f-type'),sort:$('#f-sort'),area:$('#f-area')};
   const params=new URLSearchParams(location.search);

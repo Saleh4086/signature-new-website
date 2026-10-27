@@ -24,6 +24,8 @@
     return '<div class="mk-card"><div class="k">30-yr fixed mortgage rate · last 12 months</div><div class="mk-row"><span class="v">'+p30.value.toFixed(2)+'%</span>'+(ch!=null?'<span class="d '+(ch<=0?'up':'down')+'">'+(ch>0?'▲ ':'▼ ')+Math.abs(ch).toFixed(2)+' vs prior week</span>':'')+'<span class="d" style="color:var(--muted)">12-mo range '+lo.toFixed(2)+'–'+hi.toFixed(2)+'%</span></div>'+chart(pts.map(p=>p[1]),'#d9b970',v=>v.toFixed(2)+'%')+
       '<div class="axis"><span>'+pts[0][0]+'</span><span>Week of '+p30.date+'</span></div>'+pay+'<div class="src">National weekly average. Source: <a href="'+p30.url+'" target="_blank" rel="noopener">Freddie Mac PMMS via FRED</a> · <a href="rates.html">All rate charts →</a></div></div>'}
   function render(){
+    _render();if(!box.hidden&&!box.querySelector('.mk-x'))box.insertAdjacentHTML('afterbegin',closeBtn())}
+  function _render(){
     if(!city||!M.cities[city]){
       const rows=Object.entries(M.cities).map(([c,d])=>'<tr><th scope="row"><button type="button" class="chip" data-mkcity="'+c+'" style="margin:0;padding:4px 10px;font-size:.76rem">'+c+'</button></th><td>'+money(d.zhvi.value)+'</td><td>'+pct(d.zhvi.yoy)+'</td><td>'+(d.zori?money(d.zori.value)+'/mo':'—')+'</td></tr>').join('');
       box.innerHTML='<div class="mk-card"><div class="k">Typical home value &amp; rent by city · '+ym(M.cities[Object.keys(M.cities)[0]].zhvi.month)+'</div><div style="overflow-x:auto"><table class="mtable" style="font-size:.82rem;margin-top:6px"><thead><tr><th>City</th><th>Value</th><th>1-yr</th><th>Rent</th></tr></thead><tbody>'+rows+'</tbody></table></div><div class="src">Pick a city for its 5-year trend. Source: <a href="'+M.url+'" target="_blank" rel="noopener">Zillow Research</a> (ZHVI, ZORI).</div></div>'+rateCard(null);
@@ -35,10 +37,16 @@
       chart(vals,k==='zhvi'?'#2ee6c9':'#7f8bff',money)+'<div class="axis"><span>'+ym(start)+'</span><span>'+ym(s.month)+'</span></div>'+
       '<div class="src">Monthly, smoothed &amp; seasonally adjusted. Source: <a href="'+M.url+'" target="_blank" rel="noopener">Zillow Research</a> · <a href="communities.html#market">All cities →</a></div></div>'+rateCard(d.zhvi.value);
     $$('.mk-tabs button',box).forEach(b=>b.addEventListener('click',()=>{kind=b.dataset.k;render()}))}
-  function setOpen(o){box.hidden=!o;btn.setAttribute('aria-expanded',o);if(o)render();setTimeout(()=>window.dispatchEvent(new Event('resize')),60)}
+  // Desktop: the panel floats over the top of the map/list as a drawer (CSS), so opening it never shrinks the map.
+  // Collapsed by default everywhere; ?panel=market opens it. A close button and Esc dismiss it.
+  const closeBtn=()=>'<button type="button" class="mk-x" aria-label="Close market &amp; rates">×</button>';
+  function setOpen(o,focus){box.hidden=!o;btn.setAttribute('aria-expanded',o);document.body.classList.toggle('mk-open',o);if(o)render();else if(focus)btn.focus();setTimeout(()=>window.dispatchEvent(new Event('resize')),60)}
   btn.addEventListener('click',()=>setOpen(box.hidden));
+  box.addEventListener('click',e=>{if(e.target.closest('.mk-x'))setOpen(false,true)});
+  document.addEventListener('keydown',e=>{if(e.key==='Escape'&&!box.hidden)setOpen(false,true)});
+  document.addEventListener('pointerdown',e=>{if(!box.hidden&&matchMedia('(min-width:821px)').matches&&!box.contains(e.target)&&!btn.contains(e.target)&&e.target.closest('#map'))setOpen(false)});
   $$('.citybar .chip[data-city]').forEach(c=>c.addEventListener('click',()=>{city=c.dataset.city;if(!box.hidden)render()}));
   const sel=$('#f-city');sel&&sel.addEventListener('change',()=>{city=sel.value;if(!box.hidden)render()});
   const q=new URLSearchParams(location.search);city=q.get('city')||'';
-  setOpen(q.get('panel')==='market'||(q.get('panel')!=='closed'&&matchMedia('(min-width:821px)').matches));
+  setOpen(q.get('panel')==='market');
 })();
