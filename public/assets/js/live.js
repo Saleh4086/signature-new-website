@@ -102,39 +102,117 @@
     sel.addEventListener('change',apply);
   });
 
-  /* ---------- rent vs buy ---------- */
+  /* ---------- rent vs buy (balanced: equity, appreciation, tax savings, selling costs, refinance vs. rent growth and invested savings) ---------- */
   const rb=$('#rentbuy');
   if(rb){
-    const g=id=>num($('#'+id));
-    const calc=()=>{
-      const price=g('rb1'),dp=g('rb2')/100,rate=g('rb3')/100/12,rent0=g('rb4'),yrs=Math.max(1,Math.min(30,Math.round(g('rb5'))||1));
-      const ap=g('rb6')/100,rg=g('rb7')/100,ret=g('rb8')/100/12,tax=g('rb9')/100,mt=g('rb10')/100,ins=g('rb11'),hoa=g('rb12'),sell=g('rb13')/100;
-      const loan=price*(1-dp),n=360,pi=rate?loan*rate/(1-Math.pow(1+rate,-n)):loan/n;
-      let tb=price,bal=loan,val=price,rent=rent0,ownInv=0,rentInv=price*dp,own1=0;const B=[],Rn=[];let be=null;
+    const g=id=>num($('#'+id)), on=id=>{const e=$('#'+id);return !!(e&&e.checked)}, val=id=>{const e=$('#'+id);return e?e.value:''};
+    // California 2025 tax schedules (FTB), indexed below at 3%/yr; [upper bound, rate]
+    const CA_Y=[[22158,.01],[52528,.02],[82904,.04],[115084,.06],[145448,.08],[742958,.093],[891542,.103],[1485906,.113],[Infinity,.123]];
+    const CA_X=[[11079,.01],[26264,.02],[41452,.04],[57542,.06],[72724,.08],[371479,.093],[445771,.103],[742953,.113],[Infinity,.123]];
+    const caTax=(ti,sch,k)=>{let t=0,lo=0;for(const [hi,r] of sch){const h=hi*k;if(ti>lo)t+=(Math.min(ti,h)-lo)*r;lo=h;if(ti<=h)break}return Math.max(0,t)};
+    function sim(o){
+      const {price,dp,r0,rent0,ap,rg,ret,tax,mt,ins0,hoa0,sell,close,taxOn,mfj,inc0,fedR,caR,refi,refiR,refiY,refiC}=o;
+      const mr=ret/12, D=price*dp, C=price*close, L=price-D;
+      let rate=r0/12, nLeft=360, pi=rate?L*rate/(1-Math.pow(1+rate,-360)):L/360;
+      let bal=L, val=price, tb=price, rent=rent0, ins=ins0, hoa=hoa0, inc=inc0;
+      let ownInv=0, rentInv=D+C, cO=0, cR=D+C, sOwn=0, sRent=0, sTax=0, sPrin=0, sInt=0, refiCost=0, pi0=pi, pi1=pi, own1=0, tax1=0;
+      let yInt=0, yPT=0, yBal0=bal;
+      const W=[];
       for(let m=1;m<=360;m++){
-        const int=bal*rate,prin=Math.min(bal,pi-int);bal-=prin;
-        const own=(bal>0||prin>0?pi:0)+(tb*tax+val*mt)/12+ins/12+hoa; if(m===1)own1=own;
-        ownInv*=1+ret;rentInv*=1+ret;
-        if(own>rent)rentInv+=own-rent;else ownInv+=rent-own;
+        const y=Math.ceil(m/12);
+        let extra=0;
+        if(refi&&m===refiY*12+1&&bal>0){ // refinance the remaining balance over the remaining term
+          extra=bal*refiC; refiCost+=extra; rate=refiR/12; nLeft=361-m; pi=rate?bal*rate/(1-Math.pow(1+rate,-nLeft)):bal/nLeft; pi1=pi;
+        }
+        const int=bal*rate, prin=Math.min(bal,pi-int), pay=bal>0?int+prin:0; bal-=prin;
+        const pmi=(dp<.2&&bal>.78*price)?L*.005/12:0;
+        const pt=tb*tax/12;
+        const own=pay+pt+val*mt/12+ins/12+hoa+pmi+extra;
+        if(m===1)own1=own;
+        yInt+=int; yPT+=pt; sInt+=int; sPrin+=prin;
+        ownInv*=1+mr; rentInv*=1+mr;
+        if(own>rent){rentInv+=own-rent;cR+=own-rent}else{ownInv+=rent-own;cO+=rent-own}
+        sOwn+=own; sRent+=rent;
         val*=Math.pow(1+ap,1/12);
-        if(m%12===0){rent*=1+rg;tb*=1.02;const y=m/12,bw=val*(1-sell)-Math.max(bal,0)+ownInv;B.push(bw);Rn.push(rentInv);if(be==null&&bw>rentInv)be=y}
+        if(m%12===0){
+          // estimated income-tax savings for this year, credited to the owner (and invested) at year end
+          let save=0;
+          if(taxOn){
+            const cy=2025+y, k=Math.pow(1.025,y-1);
+            const stdF=(mfj?32200:16100)*k, stdC=(mfj?11412:5706)*Math.pow(1.03,y);
+            let cap=cy<=2029?40400*Math.pow(1.01,cy-2026):10000;
+            const thr=505000*Math.pow(1.01,Math.min(cy,2029)-2026); if(inc>thr)cap=Math.max(10000,cap-.3*(inc-thr));
+            const avg=Math.max(1,(yBal0+bal)/2), intF=yInt*Math.min(1,750000/avg), intC=yInt*Math.min(1,1e6/avg);
+            const ct=caTax(Math.max(0,inc-stdC),mfj?CA_Y:CA_X,Math.pow(1.03,y));
+            const itemOwn=intF+Math.min(cap,ct+yPT), base=Math.max(stdF,Math.min(cap,ct));
+            save=Math.max(0,itemOwn-base)*fedR+Math.max(0,intC+yPT-stdC)*caR;
+          }
+          if(y===1)tax1=save;
+          ownInv+=save; cO+=save; sTax+=save;
+          yInt=0; yPT=0; yBal0=bal;
+          rent*=1+rg; tb*=1.02; ins*=1.03; hoa*=1.03; inc*=1.03;
+          const saleNet=val*(1-sell)-Math.max(bal,0);
+          const gain=val*(1-sell)-price-C, cg=Math.max(0,gain-(mfj?500000:250000))*(.15+caR+(inc>400000?.05:0));
+          W.push({y,b:saleNet-cg+ownInv,r:rentInv,val,bal:Math.max(bal,0),saleNet,cg,sOwn,sRent,sTax,sPrin,sInt,ownInv,rentInv,cO,cR,refiCost,rentNow:rent/(1+rg)});
+        }
       }
-      const b=B[yrs-1],r=Rn[yrs-1],d=b-r;
+      return {W,own1,tax1,pi0,pi1,D,C};
+    }
+    const read=()=>({price:g('rb1'),dp:Math.min(1,g('rb2')/100),r0:g('rb3')/100,rent0:g('rb4'),ap:g('rb6')/100,rg:g('rb7')/100,ret:g('rb8')/100,
+      tax:g('rb9')/100,mt:g('rb10')/100,ins0:g('rb11'),hoa0:g('rb12'),sell:g('rb13')/100,close:g('rb14')/100,taxOn:on('rb19'),mfj:val('rb15')!=='single',
+      inc0:g('rb16'),fedR:(parseFloat(val('rb17'))||0)/100,caR:(parseFloat(val('rb18'))||0)/100,refi:on('rb20'),refiR:g('rb21')/100,
+      refiY:Math.max(1,Math.min(29,Math.round(g('rb22'))||1)),refiC:g('rb23')/100});
+    // keep the suggested refi rate 1 point under today's rate until the visitor edits it
+    const rr=$('#rb21'), r3=$('#rb3'); if(rr){rr.dataset.auto='1';rr.addEventListener('input',e=>{if(e.isTrusted)rr.dataset.auto='0'})}
+    const syncRefi=()=>{if(rr&&rr.dataset.auto==='1'&&r3){const v=Math.max(3,num(r3)-1);rr.value=v.toFixed(2)}};
+    const calc=()=>{
+      syncRefi();
+      const o=read(), yrs=Math.max(1,Math.min(30,Math.round(g('rb5'))||1));
+      $$('.rb-set:nth-of-type(1) .field',rb).forEach(f=>f.classList.toggle('off',!o.taxOn));
+      const R=sim(o), w=R.W[yrs-1], b=w.b, r=w.r, d=b-r;
+      const buyNet=R.D+R.C+w.sOwn-w.sTax-(w.saleNet-w.cg)-(w.ownInv-w.cO), rentNet=w.sRent-(w.rentInv-w.cR);
+      let be=null;for(const x of R.W){if(x.b>x.r){be=x.y;break}}
       $('#rb-head').textContent='After '+yrs+' year'+(yrs>1?'s':'');
-      $('#rb-big').textContent=short(Math.abs(d));
-      $('#rb-sub').innerHTML=(d>=0?'<b>Buying</b> comes out ahead':'<b>Renting</b> comes out ahead')+' under these assumptions. Net worth if you buy: <b>'+money(b)+'</b>; if you rent and invest the difference: <b>'+money(r)+'</b>.';
-      $('#rb-own').textContent=money(own1)+'/mo';$('#rb-rent').textContent=money(rent0)+'/mo';
+      $('#rb-big').textContent=(Math.abs(d)<1000?'About even':short(Math.abs(d)));
+      $('#rb-sub').innerHTML=(Math.abs(d)<1000?'Buying and renting come out about the same':d>=0?'<b>Buying</b> comes out ahead by '+money(d):'<b>Renting</b> comes out ahead by '+money(-d))+' under these assumptions. Net worth if you buy: <b>'+money(b)+'</b>; if you rent and invest the difference: <b>'+money(r)+'</b>.';
+      const mx=Math.max(buyNet,rentNet,1);
+      const bar=(cls,l,v)=>'<div class="rb-bar '+cls+'"><span>'+l+'</span><div><i style="width:'+Math.max(2,Math.max(0,v)/mx*100).toFixed(1)+'%"></i></div><b>'+money(v)+'</b></div>';
+      $('#rb-cmp').innerHTML='<div class="rb-cmp-h">Net cost of housing over '+yrs+' year'+(yrs>1?'s':'')+'</div>'+bar('own','Own',buyNet)+bar('rent','Rent',rentNet)+
+        '<small>What you paid, minus what you get back: cash from selling and tax savings for owners, investment growth for renters.</small>';
+      $('#rb-own').textContent=money(R.own1)+'/mo';
+      $('#rb-own-net').textContent=o.taxOn?money(R.own1-R.tax1/12)+'/mo':'Off';
+      $('#rb-rent').textContent=money(o.rent0)+' → '+money(w.rentNow)+'/mo';
       $('#rb-be').textContent=be?('Year '+be):'Not within 30 years';
+      // refinance what-if (always shown)
+      const oR=Object.assign({},o,{refi:true}), oN=Object.assign({},o,{refi:false});
+      const A=sim(oR), N=sim(oN), dRefi=(A.W[yrs-1].b-A.W[yrs-1].r)-(N.W[yrs-1].b-N.W[yrs-1].r), drop=N.pi0-A.pi1;
+      const rbox=$('#rb-refi');
+      if(o.refiR>=o.r0) rbox.innerHTML='<b>Refinance:</b> set a new rate below today\'s '+(o.r0*100).toFixed(2)+'% to see the savings.';
+      else if(o.refiY>=yrs) rbox.innerHTML='<b>Refinance:</b> year '+o.refiY+' is past your '+yrs+'-year stay. Set an earlier year to see the savings.';
+      else rbox.innerHTML='<b>If rates drop to '+(o.refiR*100).toFixed(2)+'% and you refinance in year '+o.refiY+':</b> principal &amp; interest falls about <b>'+money(drop)+'/mo</b>, and buying gains about <b>'+money(Math.abs(dRefi))+'</b>'+(dRefi<0?' less':'')+' versus renting by year '+yrs+', after '+money(A.W[yrs-1].refiCost)+' in refi costs.'+(o.refi?' <span class="rb-tag">included above</span>':' <span class="rb-tag off">not included above</span>');
+      // breakdown table
+      const row=(l,v,c)=>'<tr'+(c?' class="'+c+'"':'')+'><td>'+l+'</td><td>'+v+'</td></tr>';
+      $('#rb-tbl').innerHTML='<tr class="h"><td colspan="2">Buying, year '+yrs+'</td></tr>'+
+        row('Down payment + closing costs',money(R.D+R.C))+row('Mortgage, property tax, insurance, upkeep, HOA',money(w.sOwn))+
+        row('&nbsp;&nbsp;of which interest',money(w.sInt))+row('Estimated tax savings',o.taxOn?'−'+money(w.sTax):'Off')+
+        row('Principal paid down (equity you built)',money(w.sPrin))+row('Home value: '+money(o.price)+' → '+money(w.val),'+'+money(w.val-o.price))+
+        row('Selling costs',money(w.val*o.sell))+(w.cg>0?row('Est. tax on gain above the exclusion',money(w.cg)):'')+
+        row('Cash back when you sell, after paying off the loan','−'+money(w.saleNet-w.cg))+(w.ownInv-w.cO>1?row('Growth on invested savings','−'+money(w.ownInv-w.cO)):'')+
+        row('Net cost of owning',money(buyNet),'t')+
+        '<tr class="h"><td colspan="2">Renting, year '+yrs+'</td></tr>'+row('Rent paid',money(w.sRent))+
+        row('Growth on the invested down payment and savings (opportunity cost)','−'+money(w.rentInv-w.cR))+row('Net cost of renting',money(rentNet),'t');
       // chart
-      const W=520,H=220,pl=46,pr=10,pt=10,pb=24,mx=Math.max(...B,...Rn)*1.05,mn=Math.min(0,...B,...Rn);
-      const X=i=>pl+(i)*(W-pl-pr)/29,Y=v=>pt+(mx-v)/(mx-mn||1)*(H-pt-pb);
+      const B=R.W.map(x=>x.b), Rn=R.W.map(x=>x.r);
+      const W=520,H=220,pl=46,pr=10,pt=10,pb=24,mxv=Math.max(...B,...Rn)*1.05,mn=Math.min(0,...B,...Rn);
+      const X=i=>pl+(i)*(W-pl-pr)/29,Y=v=>pt+(mxv-v)/(mxv-mn||1)*(H-pt-pb);
       const path=a=>a.map((v,i)=>(i?'L':'M')+X(i).toFixed(1)+' '+Y(v).toFixed(1)).join('');
-      let grid='';for(let k=0;k<=4;k++){const v=mn+(mx-mn)*k/4;grid+='<line x1="'+pl+'" x2="'+(W-pr)+'" y1="'+Y(v)+'" y2="'+Y(v)+'"/><text x="'+(pl-6)+'" y="'+(Y(v)+3)+'" text-anchor="end">'+short(v)+'</text>'}
+      let grid='';for(let k=0;k<=4;k++){const v=mn+(mxv-mn)*k/4;grid+='<line x1="'+pl+'" x2="'+(W-pr)+'" y1="'+Y(v)+'" y2="'+Y(v)+'"/><text x="'+(pl-6)+'" y="'+(Y(v)+3)+'" text-anchor="end">'+short(v)+'</text>'}
       let xl='';[1,5,10,15,20,25,30].forEach(y=>{xl+='<text x="'+X(y-1)+'" y="'+(H-6)+'" text-anchor="middle">'+y+'y</text>'});
       $('#rb-chart').innerHTML='<svg viewBox="0 0 '+W+' '+H+'" preserveAspectRatio="none" aria-hidden="true"><g class="grid">'+grid+'</g>'+xl+
         '<line x1="'+X(yrs-1)+'" x2="'+X(yrs-1)+'" y1="'+pt+'" y2="'+(H-pb)+'" stroke="rgba(255,255,255,.3)" stroke-dasharray="3 3"/>'+
         '<path d="'+path(Rn)+'" fill="none" stroke="var(--aqua)" stroke-width="2.2" vector-effect="non-scaling-stroke"/><path d="'+path(B)+'" fill="none" stroke="var(--gold)" stroke-width="2.2" vector-effect="non-scaling-stroke"/>'+
         '<circle cx="'+X(yrs-1)+'" cy="'+Y(b)+'" r="4" fill="var(--gold)"/><circle cx="'+X(yrs-1)+'" cy="'+Y(r)+'" r="4" fill="var(--aqua)"/></svg>';
+      window.BSP_RB_LAST={yrs,b,r,d,buyNet,rentNet,own1:R.own1,tax1:R.tax1,be,refi:{drop,dRefi},w};
     };
     rb.addEventListener('input',calc);rb.addEventListener('change',calc);calc();
   }
