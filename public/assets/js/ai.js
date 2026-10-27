@@ -7,12 +7,30 @@
   if(document.getElementById('bsai2'))return;
   const API='/api/chat', TEL='+19257225144', PHONE='(925) 722-5144';
   const HOSTS=new Set(['blackstonesignatureproperty.com','www.blackstonesignatureproperty.com','zillow.com','www.zillow.com','realtor.com','www.realtor.com','redfin.com','www.redfin.com','maps.google.com','www.google.com',location.hostname]);
+  /* Common questions: instant, pre-written answers (no AI call). Facts come only from Sal's Worker
+     (canned answers + verified business info) and this site's pages. Unknowns go to Sal directly. */
+  const CALL='<a href="tel:+19257225144">call</a> or <a href="sms:+19257225144">text</a> Sal at (925) 722-5144';
+  const FAQ=[
+    ['rates','What are today’s mortgage rates?','<span class="ai-rates">Loading the latest daily rates…</span>'],
+    ['pmfees','What are your property management fees?','Blackstone’s published pricing:<ul><li><b>Monthly management:</b> 6% of monthly rent collected</li><li><b>Tenant placement / leasing:</b> one-half of one month’s rent</li><li><b>Lease renewal:</b> $300</li></ul>Repair/vendor costs and third-party legal, court, screening or other outside charges are separate. Final terms are confirmed in the signed management agreement. <a href="property-management.html">Property management details</a>'],
+    ['areas','What areas do you serve?','Core service areas include Discovery Bay, Brentwood, Oakley, Antioch, Pittsburg, Concord, Bay Point, Byron, Walnut Creek and nearby East Bay communities. <a href="communities.html">Explore the communities</a>'],
+    ['value','How do I find out what my home is worth?','Request a free home valuation. Sal prepares a personal pricing review based on recent comparable sales and current competition. It’s prepared by a broker, with no obligation, in English or Farsi. <a href="sell.html#value">Request my free valuation</a>'],
+    ['buy','How does buying work? I’m a first-time buyer.','Five steps, one point of contact:<ol><li><b>Strategy call:</b> location, budget, lifestyle, timeline and financing</li><li><b>Pre-approval:</b> get financing lined up so your offer is credible and fast. Sal can recommend lenders.</li><li><b>Search &amp; tour:</b> personalized MLS search plus local neighborhood knowledge</li><li><b>Offer &amp; negotiation</b></li><li><b>Inspections to keys:</b> inspections, disclosures, contingencies and closing</li></ol><a href="guide-first-time-home-buyer-guide-california.html">First-time buyer guide</a> · <a href="buy.html#calc">Payment calculator</a>'],
+    ['sell','How does selling work?','The process, from valuation to closing:<ol><li><b>Valuation &amp; strategy:</b> pricing from recent comparable sales and current competition</li><li><b>Preparation plan:</b> what to fix, what to skip, and contractor coordination when helpful</li><li><b>Marketing &amp; exposure:</b> professional presentation and MLS exposure</li><li><b>Offers &amp; negotiation:</b> price, terms and certainty</li><li><b>Escrow to close:</b> disclosures, inspections, deadlines and closing</li></ol><a href="sell.html">Selling with Blackstone</a>'],
+    ['commission','What is your commission to sell my home?','Sal discusses commission and listing terms directly with each seller, based on your home and goals. Please '+CALL+', or <a href="contact.html">send a message</a>.'],
+    ['rent','How do I rent a home or apply?','Applications are handled securely through RentSpree. <a href="apply.html">Apply to rent</a>. For current availability, rent and showing information on Blackstone-managed rentals, see <a href="property-management.html">Property management</a> or '+CALL+'.'],
+    ['repair','I’m a tenant. How do I request a repair?','Use the <a href="property-management.html#repair">repair request form</a>. It goes directly to Blackstone. <b>Emergency?</b> For fire, gas, flooding, electrical danger or any immediate life-safety emergency, call 911 or the utility first, then notify us.'],
+    ['showing','How do I schedule a showing?','<a href="tel:+19257225144">Call</a> or <a href="sms:+19257225144">text</a> Sal at (925) 722-5144 with the home you’d like to see, or <a href="contact.html">send a message</a>. You can browse homes on the <a href="search.html">map search</a>.'],
+    ['farsi','Do you speak Farsi?','Yes. Sal works with clients in English and Farsi (به فارسی با ما صحبت کنید), so every detail of your purchase, sale, lease or investment is clear in the language you’re most comfortable with.'],
+    ['contact','How do I contact Sal?','Sal Gharibyar, Broker/Owner (DRE #01418692): <a href="tel:+19257225144">call</a> or <a href="sms:+19257225144">text</a> (925) 722-5144, email <a href="mailto:gharibyar61@gmail.com">gharibyar61@gmail.com</a>, or use the <a href="contact.html">contact form</a>.']
+  ];
+  const FAQ_HTML='<div class="ai-faq" id="bsai2-faq"><p class="ai-faq-h">Common questions · instant answers</p>'+FAQ.map(f=>'<details data-k="'+f[0]+'"><summary>'+f[1]+'</summary><div class="ai-faq-a">'+f[2]+'</div></details>').join('')+'<p class="ai-faq-f">Something else? Type your question below.</p></div>';
   const root=document.createElement('div');root.id='bsai2';
   root.innerHTML='<button class="ai-fab" type="button" aria-expanded="false" aria-controls="bsai2-p" aria-label="Ask Sal\'s AI assistant"><b aria-hidden="true">✦</b><span class="t">Ask Sal’s AI</span></button>'+
   '<section class="ai-panel" id="bsai2-p" role="dialog" aria-label="Blackstone Signature Properties &amp; Investments AI Concierge" hidden>'+
   '<div class="ai-h"><img src="assets/logo-mark.png" alt=""><div><b>Blackstone AI Concierge</b><small>● Online 24/7 · Sal\'s own assistant</small></div><button class="ai-x" type="button" aria-label="Close">✕</button></div>'+
-  '<div class="ai-log" aria-live="polite"><div class="ai-m bot">Hi! I’m the Blackstone Signature Properties &amp; Investments AI Concierge. Ask about buying, selling, mortgage payments, investing, rentals, or property management.</div></div>'+
-  '<div class="ai-q"><button type="button" data-q="What would the monthly payment be on a $750,000 home with 20% down at today’s rate?">Payment on $750K?</button><button type="button" data-q="What should I know before buying in Discovery Bay?">Buying in Discovery Bay</button><button type="button" data-q="How does your property management work?">Property management</button>'+
+  '<div class="ai-log" aria-live="polite"><div class="ai-m bot">Hi! I’m the Blackstone Signature Properties &amp; Investments AI Concierge. Ask about buying, selling, mortgage payments, investing, rentals, or property management.</div>'+FAQ_HTML+'</div>'+
+  '<div class="ai-q"><button type="button" class="ai-faq-go">☰ Common questions</button>'+
   '<a href="search.html">⌕ Search homes</a><a href="sell.html#value">$ Home worth?</a><a href="contact.html?topic=Showing">▣ Schedule a showing</a></div>'+
   '<form class="ai-f"><input type="text" autocomplete="off" placeholder="Type a message…" aria-label="Message" maxlength="1500"><button type="submit">Send</button></form>'+
   '<p class="ai-d">General information only. Contact Sal for advice specific to your situation.</p></section>';
@@ -51,7 +69,25 @@
       history.push({role:'user',text:message});history.push({role:'assistant',text:reply});if(history.length>12)history.splice(0,history.length-12);
     }catch(e){offline(ld,e&&e.name==='AbortError'?'timeout':0)}
     finally{clearTimeout(tm);input.disabled=send.disabled=false;if(matchMedia('(min-width:821px)').matches)input.focus();log.scrollTop=log.scrollHeight}}
+  /* FAQ accordion: one open at a time; the rates answer reads /api/rates when opened */
+  const faqBox=root.querySelector('.ai-faq');
+  let ratesLoaded=false;
+  const mdy=v=>{const m=/^(\d{1,2})\/(\d{1,2})\/(\d{2}|\d{4})$/.exec(String(v||'').trim());if(!m)return null;const y=m[3].length===2?2000+(+m[3]):+m[3];return new Date(Date.UTC(y,+m[1]-1,+m[2]))};
+  const ok=v=>typeof v==='number'&&isFinite(v)&&v>=1&&v<=20;
+  const fd=d=>d.toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric',timeZone:'UTC'});
+  const fresh=d=>d&&(Date.now()-d.getTime())/864e5<=6&&d.getTime()-Date.now()<2*864e5;
+  function loadRates(){if(ratesLoaded)return;ratesLoaded=true;const el=root.querySelector('.ai-rates');if(!el)return;
+    const fail=()=>{el.innerHTML='The live rate feed isn’t available right now. See the latest published averages with their dates and sources on the <a href="rates.html">Rates page</a>.'};
+    const ac=window.AbortController?new AbortController():null,t=setTimeout(()=>{ac&&ac.abort()},5000);
+    fetch('/api/rates',{headers:{Accept:'application/json'},signal:ac?ac.signal:undefined}).then(r=>r.ok?r.json():null).then(j=>{clearTimeout(t);
+      const d=j&&mdy(j.updated);if(!j||j.fallback===true||!ok(j.rate30)||!fresh(d))return fail();
+      const df=mdy(j.fhaUpdated||j.updated),fha=ok(j.fha30)&&fresh(df);
+      el.innerHTML='Mortgage News Daily’s national daily index:<ul><li><b>30-yr fixed:</b> '+j.rate30.toFixed(2)+'% (as of '+fd(d)+')</li>'+(fha?'<li><b>30-yr FHA:</b> '+j.fha30.toFixed(2)+'% (as of '+fd(df)+')</li>':'')+'</ul>These are national benchmarks, not a quote. Your rate depends on credit, down payment, loan type and points. <a href="rates.html">All rates &amp; sources</a> · <a href="buy.html?rate='+j.rate30.toFixed(2)+'#calc">Payment at '+j.rate30.toFixed(2)+'%</a> · Ask Sal for a lender referral: (925) 722-5144.';
+    }).catch(()=>{clearTimeout(t);fail()})}
+  faqBox.querySelectorAll('details').forEach(d=>d.addEventListener('toggle',()=>{if(!d.open)return;faqBox.querySelectorAll('details[open]').forEach(o=>{if(o!==d)o.open=false});if(d.dataset.k==='rates')loadRates();
+    setTimeout(()=>{const top=d.offsetTop-log.offsetTop-8;if(top<log.scrollTop||d.offsetTop+d.offsetHeight-log.offsetTop>log.scrollTop+log.clientHeight)log.scrollTop=top},30)}));
+  root.querySelector('.ai-faq-go').addEventListener('click',()=>{log.scrollTop=faqBox.offsetTop-log.offsetTop-8;const f=faqBox.querySelector('summary');f&&f.focus()});
   form.addEventListener('submit',e=>{e.preventDefault();const m=input.value.trim();if(m)ask(m)});
-  root.querySelectorAll('.ai-q button').forEach(b=>b.addEventListener('click',()=>ask(b.dataset.q)));
+  root.querySelectorAll('.ai-q button[data-q]').forEach(b=>b.addEventListener('click',()=>ask(b.dataset.q)));
   document.querySelectorAll('[data-open-ai]').forEach(b=>b.addEventListener('click',e=>{e.preventDefault();open(true)}));
 })();
