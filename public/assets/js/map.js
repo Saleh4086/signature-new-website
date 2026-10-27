@@ -71,7 +71,7 @@
   map.on('moveend',()=>{if(F.area.checked)render()});
   // city chips + select → fly to city
   function fly(city){ $$('.citybar .chip').forEach(c=>c.classList.toggle('on',c.dataset.city===city)); if(city&&CITIES[city])map.flyTo(CITIES[city].c,CITIES[city].z,{duration:1}); else map.flyTo([37.94,-121.88],10,{duration:1}); }
-  $$('.citybar .chip').forEach(c=>c.addEventListener('click',()=>{F.city.value=c.dataset.city;fly(c.dataset.city);render()}));
+  $$('.citybar .chip[data-city]').forEach(c=>c.addEventListener('click',()=>{F.city.value=c.dataset.city;fly(c.dataset.city);render()}));
   F.city.addEventListener('change',()=>fly(F.city.value));
   $('#f-reset').addEventListener('click',()=>{['q','min','max','beds','baths','type','city'].forEach(k=>F[k].value='');F.area.checked=false;F.sort.value='new';fly('');render()});
   const mf=$('.more-f'); mf&&mf.addEventListener('click',()=>{const o=$('.filters').classList.toggle('open');mf.setAttribute('aria-expanded',o);mf.textContent=o?'Hide filters':'Filters'});
