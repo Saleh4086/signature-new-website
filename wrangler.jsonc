@@ -13,5 +13,6 @@
   "kv_namespaces": [
     { "binding": "LISTINGS", "id": "1ecc1af7d0084b9588187b77e602fb94" }
   ],
+  "preview_urls": false,
   "keep_vars": true
 }

@@ -509,7 +509,8 @@ async function handleChat(request, env) {
           ? { tools: [{ type: "google_search" }] }
           : {}),
         generation_config: {
-          max_output_tokens: 1400
+          max_output_tokens: 1400,
+          thinking_level: "low"  // the cap counts thinking tokens too; low thinking leaves room for the full answer
         }
       })
     });
