@@ -87,6 +87,18 @@
   faqBox.querySelectorAll('details').forEach(d=>d.addEventListener('toggle',()=>{if(!d.open)return;faqBox.querySelectorAll('details[open]').forEach(o=>{if(o!==d)o.open=false});if(d.dataset.k==='rates')loadRates();
     setTimeout(()=>{const top=d.offsetTop-log.offsetTop-8;if(top<log.scrollTop||d.offsetTop+d.offsetHeight-log.offsetTop>log.scrollTop+log.clientHeight)log.scrollTop=top},30)}));
   root.querySelector('.ai-faq-go').addEventListener('click',()=>{log.scrollTop=faqBox.offsetTop-log.offsetTop-8;const f=faqBox.querySelector('summary');f&&f.focus()});
+  /* Mobile: keep the AI button off content. Fade while scrolling; dock into the quick-contact bar once it shows;
+     on the map search page it becomes a compact chip in the bottom row and hides while the map is open. */
+  const mq=matchMedia('(max-width:820px)');let scT;
+  const busy=()=>{if(!mq.matches||root.classList.contains('open'))return;root.classList.add('scrolling');clearTimeout(scT);scT=setTimeout(()=>root.classList.remove('scrolling'),650)};
+  addEventListener('scroll',busy,{passive:true});
+  const spList=document.querySelector('body.search-page .list');spList&&spList.addEventListener('scroll',busy,{passive:true});
+  const spMain=document.querySelector('body.search-page .sp-main');
+  if(spMain){const u=()=>root.classList.toggle('mapopen',spMain.classList.contains('show-map'));new MutationObserver(u).observe(spMain,{attributes:true,attributeFilter:['class']});u()}
+  const mbar=document.querySelector('.mbar');
+  if(mbar&&!spMain){const ab=document.createElement('button');ab.type='button';ab.className='mbar-ai';ab.setAttribute('aria-label','Ask Sal\'s AI assistant');ab.setAttribute('aria-controls','bsai2-p');
+    ab.innerHTML='<b aria-hidden="true">✦</b>Ask AI';ab.addEventListener('click',()=>open(true));mbar.appendChild(ab);mbar.classList.add('has-ai');
+    const u=()=>root.classList.toggle('docked',mbar.classList.contains('show'));new MutationObserver(u).observe(mbar,{attributes:true,attributeFilter:['class']});u()}
   form.addEventListener('submit',e=>{e.preventDefault();const m=input.value.trim();if(m)ask(m)});
   root.querySelectorAll('.ai-q button[data-q]').forEach(b=>b.addEventListener('click',()=>ask(b.dataset.q)));
   document.querySelectorAll('[data-open-ai]').forEach(b=>b.addEventListener('click',e=>{e.preventDefault();open(true)}));
