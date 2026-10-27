@@ -525,3 +525,5 @@ html{-webkit-text-size-adjust:100%;text-size-adjust:100%}html,body{max-width:100
 #iv-sale td{font-size:.86rem;padding:8px 0}#iv-sale td:last-child{white-space:nowrap;padding-left:10px;text-align:right}
 #iv-sale tr.h td{color:var(--aqua-2);font-size:.74rem;letter-spacing:.14em;text-transform:uppercase;padding-top:14px;font-weight:600}#iv-sale tr.t td{font-weight:700;color:var(--text)}
 .iv-tool .tool-in>fieldset{grid-column:1/-1}.iv-tool .tool-grid>*{min-width:0}.iv-tool .tool-out>*{min-width:0;max-width:100%}
+/* search.html mobile map view: keep the AI chip available inside the opaque bottom bar (never over the map or cards) */
+@media (max-width:820px){body.search-page #bsai2.mapopen .ai-fab{display:inline-flex}}
