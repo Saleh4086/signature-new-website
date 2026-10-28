@@ -7,7 +7,7 @@
   const LABEL={'for-sale':'For Sale','pending':'Pending','sold':'Sold','rental':'For Rent'};
   const NOT_IMG=/^https?:\/\/(?:photos\.app\.goo\.gl|goo\.gl|photos\.google\.com|drive\.google\.com\/(?:file|drive|open)|(?:www\.)?(?:zillow|redfin|realtor|trulia)\.com|(?:www\.)?dropbox\.com\/s(?:h|cl)?\/|1drv\.ms|onedrive\.live\.com|(?:www\.)?icloud\.com\/(?:photos|sharedalbum))/i;
   const isOwnPhoto=u=>/^\/api\/listing-photo\/[0-9A-Za-z_-]{8,64}$/.test(String(u||'').replace(location.origin,''));
-  let list=[], updated=null, editing=null, photos=[], session=new Set(), busy=false;
+  let list=[], updated=null, editing=null, photos=[], session=new Set(), busy=false, pin=null; // pin={lat,lng,addr,src:'auto'|'manual'}
   const form=$('#lm-form'), note=$('#lm-note'), box=$('#lm-list'), strip=$('#lm-photos'), up=$('#lm-files');
   const say=(t,bad)=>{note.innerHTML=t;note.className='lm-note'+(bad?' bad':' ok');note.hidden=!t};
   async function req(url,opt){const r=await fetch(url,Object.assign({credentials:'same-origin',cache:'no-store'},opt||{}));const d=await r.json().catch(()=>({}));if(!r.ok){const e=new Error(d.error||('Server error '+r.status));e.status=r.status;e.data=d;throw e}return d}
@@ -16,7 +16,7 @@
   const pics=x=>(Array.isArray(x.photos)&&x.photos.length?x.photos:(x.photo?[x.photo]:[]));
   function render(){
     box.innerHTML=list.length?list.map((x,i)=>{const p=pics(x),cover=p.find(u=>!NOT_IMG.test(u));
-      return '<div class="lm-item"><div class="lm-th">'+(cover?'<img src="'+esc(cover)+'" alt="">':'<span>No photo</span>')+'</div><div class="lm-tx"><b>'+esc(LABEL[x.status]||x.status)+' · '+esc(x.address)+'</b><small>'+esc(x.price||'')+' · '+p.length+' photo'+(p.length===1?'':'s')+(x.apply?' · apply link ✓':'')+(p.some(u=>NOT_IMG.test(u))?' · <em class="warn">has a share link, not a photo</em>':'')+'</small></div>'+
+      return '<div class="lm-item"><div class="lm-th">'+(cover?'<img src="'+esc(cover)+'" alt="">':'<span>No photo</span>')+'</div><div class="lm-tx"><b>'+esc(LABEL[x.status]||x.status)+' · '+esc(x.address)+'</b><small>'+esc(x.price||'')+' · '+p.length+' photo'+(p.length===1?'':'s')+(x.apply?' · apply link ✓':'')+(x.lat!=null&&x.lng!=null&&x.lat!==''?' · <em class="pinok">map pin ✓</em>':' · <em class="warn">map pin: community only, edit to place it</em>')+(p.some(u=>NOT_IMG.test(u))?' · <em class="warn">has a share link, not a photo</em>':'')+'</small></div>'+
       '<div class="lm-act"><button type="button" class="btn btn-ghost" data-edit="'+i+'">Edit</button><button type="button" class="btn btn-ghost" data-up="'+i+'"'+(i?'':' disabled')+' aria-label="Move up">↑</button><button type="button" class="btn btn-ghost danger" data-del="'+i+'">Remove</button></div></div>'}).join(''):'<p class="muted">No listings yet. Add your first one above.</p>';
   }
   box.addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;
@@ -54,11 +54,45 @@
     try{const u=new URL(v);if(!/^https?:$/.test(u.protocol))throw 0}catch(_){return say('Enter a full photo link starting with https://',true)}
     if(photos.length>=MAXP)return say('Up to '+MAXP+' photos per listing.',true);photos.push(v);i.value='';drawPhotos();say('')});
   const F=id=>$('#'+id);
+  /* ---- Map pin: geocoded from the address (server: /api/geocode), draggable, or typed coordinates ---- */
+  const GEO='/api/geocode', DB=[37.9085,-121.6002], pinst=$('#lm-pinst');
+  const pinSay=(t,cls)=>{pinst.innerHTML=t;pinst.className=cls||''};
+  const norm=a=>String(a||'').toLowerCase().replace(/[^a-z0-9]+/g,' ').trim();
+  let pmap=null, pmk=null;
+  function initMap(){if(pmap||!window.L||!$('#lm-map'))return;const L=window.L;
+    pmap=L.map('lm-map',{scrollWheelZoom:false}).setView(DB,11);
+    const E='https://server.arcgisonline.com/ArcGIS/rest/services/';
+    L.tileLayer(E+'World_Imagery/MapServer/tile/{z}/{y}/{x}',{maxZoom:20,maxNativeZoom:18,attribution:'Imagery &copy; Esri'}).addTo(pmap);
+    L.tileLayer(E+'Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}',{maxZoom:20,maxNativeZoom:18}).addTo(pmap);
+    L.tileLayer(E+'Reference/World_Transportation/MapServer/tile/{z}/{y}/{x}',{maxZoom:20,maxNativeZoom:18}).addTo(pmap);
+    pmap.on('click',e=>setPin(e.latlng.lat,e.latlng.lng,'manual'));drawPin()}
+  function drawPin(){if(!pmap)return;const L=window.L;
+    if(!pin){if(pmk){pmap.removeLayer(pmk);pmk=null}return}
+    if(!pmk){pmk=L.marker([pin.lat,pin.lng],{draggable:true,autoPan:true,title:'Drag to the house'}).addTo(pmap);pmk.on('dragend',()=>{const p=pmk.getLatLng();setPin(p.lat,p.lng,'manual')})}
+    else pmk.setLatLng([pin.lat,pin.lng]);
+    pmap.setView([pin.lat,pin.lng],Math.max(pmap.getZoom(),18))}
+  function setPin(lat,lng,src,matched){lat=+(+lat).toFixed(6);lng=+(+lng).toFixed(6);
+    pin={lat,lng,src,addr:norm(F('lm-address').value)};F('lm-lat').value=lat;F('lm-lng').value=lng;drawPin();
+    pinSay(src==='manual'?'Pin set by hand ✓ ('+lat+', '+lng+')':'Pin found ✓ '+esc(matched||'')+' <span class="muted">Drag it if it is not on the house.</span>','ok')}
+  function clearPin(msg){pin=null;F('lm-lat').value='';F('lm-lng').value='';drawPin();if(pmap)pmap.setView(DB,11);pinSay(msg||'No pin yet.','')}
+  async function findPin(){const a=F('lm-address').value.trim();if(a.length<5){pinSay('Type the full address first.','bad');return false}
+    pinSay('Finding the address on the map…','');
+    try{const d=await req(GEO+'?address='+encodeURIComponent(a));
+      if(d.ok&&Number.isFinite(d.lat)&&Number.isFinite(d.lng)){setPin(d.lat,d.lng,'auto',d.matched);
+        if(d.street===false)pinSay('Only the street or area was found, not the house number. <b>Drag the pin onto the house</b> before saving.','bad');return true}
+      pinSay('<b>Could not find this address on the map.</b> Check the spelling (street, city, ZIP), or tap the house on the map to place the pin.','bad');return false}
+    catch(e){pinSay('<b>Map lookup failed:</b> '+esc(e.message)+'. Tap the house on the map to place the pin.','bad');return false}}
+  $('#lm-find').addEventListener('click',findPin);
+  F('lm-address').addEventListener('change',()=>{if(pin&&pin.addr===norm(F('lm-address').value))return;if(F('lm-address').value.trim().length>=5)findPin()});
+  $('#lm-setll').addEventListener('click',()=>{const a=parseFloat(F('lm-lat').value),b=parseFloat(F('lm-lng').value);
+    if(!(Math.abs(a)<=90&&Math.abs(b)<=180)||!a||!b)return pinSay('Enter latitude and longitude as numbers, e.g. 37.901399 and -121.590796.','bad');setPin(a,b,'manual')});
+  $('#lm-clearll').addEventListener('click',()=>clearPin('Pin cleared. The listing will show at its community until you set a pin.'));
   function edit(i){editing=i;const x=list[i];
     F('lm-status').value=x.status||'for-sale';F('lm-address').value=x.address||'';F('lm-price').value=x.price||'';F('lm-beds').value=x.beds||'';F('lm-baths').value=x.baths||'';F('lm-sqft').value=x.sqft||'';
     F('lm-meta').value=x.meta||'';F('lm-apply').value=x.apply||'';F('lm-url').value=x.url||'';photos=pics(x).slice();session=new Set();drawPhotos();
+    if(x.lat!=null&&x.lng!=null&&x.lat!==''&&Number.isFinite(+x.lat)&&Number.isFinite(+x.lng)){setPin(x.lat,x.lng,'manual');pinSay('Saved pin ✓ ('+(+x.lat)+', '+(+x.lng)+') <span class="muted">Drag it to adjust.</span>','ok')}else{clearPin('This listing has no exact pin yet (it shows at its community). Click “Find on map”.')}
     $('#lm-title').textContent='Edit: '+x.address;$('#lm-cancel').hidden=false;$('#lm-submit').textContent='Save changes';toggleApply();form.scrollIntoView({behavior:'smooth'});say('')}
-  function reset(){editing=null;form.reset();photos=[];session=new Set();drawPhotos();$('#lm-title').textContent='Add a listing';$('#lm-cancel').hidden=true;$('#lm-submit').textContent='Save listing';toggleApply()}
+  function reset(){editing=null;form.reset();photos=[];session=new Set();drawPhotos();clearPin('Type the address above, then “Find on map”.');$('#lm-title').textContent='Add a listing';$('#lm-cancel').hidden=true;$('#lm-submit').textContent='Save listing';toggleApply()}
   $('#lm-cancel').addEventListener('click',async()=>{const orphan=[...session];reset();cleanup(orphan)});
   const toggleApply=()=>{$('#lm-applyrow').classList.toggle('dim',F('lm-status').value!=='rental')};F('lm-status').addEventListener('change',toggleApply);
   async function cleanup(cands){const used=new Set(list.flatMap(pics).map(u=>String(u).replace(location.origin,'')));
@@ -69,12 +103,18 @@
     finally{busy=false}}
   form.addEventListener('submit',async e=>{e.preventDefault();
     const bad=photos.filter(u=>NOT_IMG.test(u));
+    if(F('lm-address').value.trim().length<3)return say('Enter the address.',true);
+    const btn0=$('#lm-submit');btn0.disabled=true;
+    if(!pin||pin.addr!==norm(F('lm-address').value))await findPin();
+    btn0.disabled=false;
+    const nopin=!pin||pin.addr!==norm(F('lm-address').value);
     const item={id:editing!=null?list[editing].id:String(Date.now())+String(Math.floor(Math.random()*1000)).padStart(3,'0'),status:F('lm-status').value,address:F('lm-address').value.trim(),price:F('lm-price').value.trim(),
       beds:F('lm-beds').value,baths:F('lm-baths').value,sqft:F('lm-sqft').value,meta:F('lm-meta').value.trim(),photos:photos.slice(),photo:photos[0]||'',apply:F('lm-apply').value.trim(),url:F('lm-url').value.trim()};
+    if(!nopin){item.lat=pin.lat;item.lng=pin.lng}
     for(const k of ['apply','url'])if(item[k]){try{const u=new URL(item[k]);if(!/^https?:$/.test(u.protocol))throw 0}catch(_){return say('The '+(k==='apply'?'apply link':'property page link')+' must start with https://',true)}}
     const a=list.slice();if(editing!=null)a[editing]=item;else a.unshift(item);
     const btn=$('#lm-submit');btn.disabled=true;
-    const ok=await save(a,'<b>Saved to the website.</b> Visitors see it on the map search, home page'+(item.status==='rental'?' and Available rentals':'')+' within about two minutes.'+(bad.length?' <br><b>Note:</b> it still has a share link instead of a photo; remove it and upload the photos.':''),[...session]);
+    const ok=await save(a,'<b>Saved to the website.</b> Visitors see it on the map search, home page'+(item.status==='rental'?' and Available rentals':'')+' within about two minutes.'+(nopin?' <br><b>Map pin:</b> the address was not found, so it shows at its community. Edit the listing and tap the house on the map to place the pin.':'')+(bad.length?' <br><b>Note:</b> it still has a share link instead of a photo; remove it and upload the photos.':''),[...session]);
     btn.disabled=false;if(ok)reset()});
-  drawPhotos();toggleApply();load();
+  drawPhotos();toggleApply();initMap();load();
 })();

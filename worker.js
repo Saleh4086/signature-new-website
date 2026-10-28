@@ -1023,6 +1023,31 @@ async function handleListingPhoto(request,env,authorize){
   await env.LISTINGS.put('photo:'+nid,buf,{metadata:{ct:kind,size:buf.byteLength,at:new Date().toISOString()}});
   return listingsJson({ok:true,id:nid,url:'/api/listing-photo/'+nid,size:buf.byteLength},201);
 }
+// ---- Address lookup for map pins -----------------------------------------------------------
+// GET /api/geocode?address=...  admin (same login + same-origin as PUT /api/listings). The Listing Manager calls it when a
+// listing is saved so the pin lands on the house, not the community centre. US Census geocoder first (public domain,
+// street-level), then OpenStreetMap Nominatim. Returns {ok,lat,lng,matched,source} or {ok:false,error}.
+async function geoFetch(u,ms,headers){const ac=new AbortController(),t=setTimeout(()=>ac.abort(),ms);try{const r=await fetch(u,{headers:Object.assign({'Accept':'application/json'},headers||{}),signal:ac.signal});return r.ok?await r.json():null}catch{return null}finally{clearTimeout(t)}}
+async function geocodeAddress(address){
+  const q=encodeURIComponent(address);
+  const c=await geoFetch('https://geocoding.geo.census.gov/geocoder/locations/onelineaddress?benchmark=Public_AR_Current&format=json&address='+q,8000);
+  const m=c&&c.result&&Array.isArray(c.result.addressMatches)?c.result.addressMatches[0]:null;
+  if(m&&m.coordinates&&Number.isFinite(+m.coordinates.y)&&Number.isFinite(+m.coordinates.x))return {ok:true,lat:+(+m.coordinates.y).toFixed(6),lng:+(+m.coordinates.x).toFixed(6),matched:String(m.matchedAddress||''),source:'US Census'};
+  const n=await geoFetch('https://nominatim.openstreetmap.org/search?format=json&addressdetails=1&limit=1&countrycodes=us&q='+q,8000,{'User-Agent':'BlackstoneSignatureListingManager/1.0 (+https://blackstonesignatureproperty.com)'});
+  const h=Array.isArray(n)?n[0]:null;
+  if(h&&Number.isFinite(+h.lat)&&Number.isFinite(+h.lon)){const street=!!(h.address&&h.address.house_number);return {ok:true,lat:+(+h.lat).toFixed(6),lng:+(+h.lon).toFixed(6),matched:String(h.display_name||''),source:'OpenStreetMap',street}}
+  return {ok:false,error:'Address not found.'};
+}
+async function handleGeocode(request,env,authorize){
+  const url=new URL(request.url);
+  if(request.method!=='GET')return listingsJson({error:'Method not allowed.'},405,{'Allow':'GET'});
+  const auth=authorize(request,env);
+  if(auth.missing)return listingsJson({error:'Admin access is not configured.'},503);
+  if(!auth.ok)return listingsJson({error:'Admin login required.'},401,{'WWW-Authenticate':'Basic realm="Blackstone Signature Properties & Investments Admin", charset="UTF-8"'});
+  const o=request.headers.get('Origin');if(o&&o!==url.origin)return listingsJson({error:'Request origin is not allowed.'},403);
+  const address=listingText(url.searchParams.get('address'),200);if(address.length<5)return listingsJson({ok:false,error:'Enter the full address.'},400);
+  return listingsJson(await geocodeAddress(address));
+}
 // ---- end Listings API ----
 const worker = {
   async route(request, env) {
@@ -1040,6 +1065,7 @@ const worker = {
     }
     if(normalized==='/api/listings'||normalized.startsWith('/api/listings/'))return handleListings(request,env,adminHubAuthorized);
     if(normalized==='/api/listing-photo'||normalized.startsWith('/api/listing-photo/'))return handleListingPhoto(request,env,adminHubAuthorized);
+    if(normalized==='/api/geocode')return handleGeocode(request,env,adminHubAuthorized);
     if (/^\/(?:admin-hub|listing-manager)(?:\.html)?$/.test(normalized)) {
       const auth=adminHubAuthorized(request,env);
       if(auth.missing)return new Response('Admin access is not configured.',{status:503,headers:{'Cache-Control':'no-store'}});
