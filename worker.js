@@ -935,6 +935,7 @@ async function guardApi(request,env){
 const LISTINGS_KEY='listings:v1';
 const LISTING_STATUSES=['for-sale','pending','sold','rental'];
 const LISTINGS_MAX=100;
+const LISTING_PHOTOS_MAX=12, LISTING_META_MAX=1500;
 function listingsJson(data,status=200,extra={}){return new Response(JSON.stringify(data),{status,headers:{'Content-Type':'application/json; charset=utf-8','Cache-Control':'no-store',...extra}})}
 function listingText(v,max){return String(v==null?'':v).replace(/[\u0000-\u001f\u007f<>]/g,' ').replace(/\s+/g,' ').trim().slice(0,max)}
 function listingUrl(v){const s=String(v==null?'':v).trim();if(!s)return '';if(s.length>800)return null;if(s.startsWith('/')&&!s.startsWith('//'))return s;try{const u=new URL(s);return (u.protocol==='https:'||u.protocol==='http:')&&!u.username&&!u.password?u.href:null}catch{return null}}
@@ -942,8 +943,11 @@ function cleanListing(x,id){
   if(!x||typeof x!=='object'||Array.isArray(x))return {error:'Invalid listing.'};
   const status=LISTING_STATUSES.includes(x.status)?x.status:null;if(!status)return {error:'Status must be for-sale, pending, sold or rental.'};
   const address=listingText(x.address,200);if(address.length<3)return {error:'Address is required.'};
-  const photo=listingUrl(x.photo),url=listingUrl(x.url);if(photo===null)return {error:'Photo must be a web link (https://…).'};if(url===null)return {error:'Property link must be a web link (https://…).'};
-  const out={id:String(id),status,address,price:listingText(x.price,60),meta:listingText(x.meta,300),photo,url};
+  const photo=listingUrl(x.photo),url=listingUrl(x.url),apply=listingUrl(x.apply);if(photo===null)return {error:'Photo must be a web link (https://…).'};if(url===null)return {error:'Property link must be a web link (https://…).'};if(apply===null)return {error:'Apply link must be a web link (https://…).'};
+  let photos=[];if(Array.isArray(x.photos)){for(const p of x.photos.slice(0,LISTING_PHOTOS_MAX)){const u=listingUrl(p);if(u===null)return {error:'Photos must be web links.'};if(u&&!photos.includes(u))photos.push(u)}}
+  if(photo&&!photos.includes(photo)&&!photos.length)photos.push(photo);
+  const out={id:String(id),status,address,price:listingText(x.price,60),meta:listingText(x.meta,LISTING_META_MAX),photo:photos[0]||'',photos,url,apply};
+  for(const k of ['beds','baths','sqft']){const n=Number(x[k]);if(x[k]!==''&&x[k]!=null&&Number.isFinite(n)&&n>0&&n<1e6)out[k]=Math.round(n*10)/10}
   const lat=Number(x.lat),lng=Number(x.lng);if(x.lat!=null&&x.lng!=null&&Number.isFinite(lat)&&Number.isFinite(lng)&&Math.abs(lat)<=90&&Math.abs(lng)<=180){out.lat=lat;out.lng=lng}
   return {item:out};
 }
@@ -964,7 +968,7 @@ async function handleListings(request,env,authorize){
   if(!auth.ok)return listingsJson({error:'Admin login required.'},401,{'WWW-Authenticate':'Basic realm="Blackstone Signature Properties & Investments Admin", charset="UTF-8"'});
   if(request.headers.get('Origin')!==url.origin)return listingsJson({error:'Request origin is not allowed.'},403);
   if(request.headers.get('Content-Type')?.split(';')[0].trim()!=='application/json')return listingsJson({error:'Use application/json.'},415);
-  const text=await request.text();if(text.length>131072)return listingsJson({error:'Request is too large.'},413);
+  const text=await request.text();if(text.length>262144)return listingsJson({error:'Request is too large.'},413);
   let body;try{body=JSON.parse(text)}catch{return listingsJson({error:'Invalid JSON.'},400)}
   if(!body||!Array.isArray(body.listings))return listingsJson({error:'Send {listings:[...]}.'},400);
   if(body.listings.length>LISTINGS_MAX)return listingsJson({error:`Up to ${LISTINGS_MAX} listings can be saved.`},400);
@@ -975,6 +979,49 @@ async function handleListings(request,env,authorize){
   let updated=new Date().toISOString();if(base&&updated<=base)updated=new Date(Date.parse(base)+1).toISOString();
   await env.LISTINGS.put(LISTINGS_KEY,JSON.stringify({listings:out,updated}));
   return listingsJson({ok:true,listings:out,updated});
+}
+// ---- Listing photos (same KV namespace, key photo:<id>) ------------------------------------
+// POST   /api/listing-photo        admin (same login + same-origin as PUT /api/listings). Body = the image bytes
+//                                  (image/jpeg, image/webp or image/png, max 3 MB; the Listing Manager resizes first).
+//                                  Returns {ok,id,url:'/api/listing-photo/<id>'}.
+// GET    /api/listing-photo/<id>  public; ids never change, so it is cached for a year.
+// DELETE /api/listing-photo/<id>  admin; used when a photo or a listing is removed in the Listing Manager.
+const PHOTO_MAX=3*1024*1024, PHOTO_TYPES=['image/jpeg','image/webp','image/png'];
+function photoKind(b){const u=new Uint8Array(b,0,Math.min(12,b.byteLength));
+  if(u[0]===0xFF&&u[1]===0xD8&&u[2]===0xFF)return 'image/jpeg';
+  if(u[0]===0x89&&u[1]===0x50&&u[2]===0x4E&&u[3]===0x47)return 'image/png';
+  if(u[0]===0x52&&u[1]===0x49&&u[2]===0x46&&u[3]===0x46&&u[8]===0x57&&u[9]===0x45&&u[10]===0x42&&u[11]===0x50)return 'image/webp';
+  return null}
+async function handleListingPhoto(request,env,authorize){
+  const url=new URL(request.url),m=url.pathname.match(/^\/api\/listing-photo(?:\/([0-9A-Za-z_-]{8,64}))?\/?$/);
+  if(!m)return listingsJson({error:'Not found.'},404);
+  if(!env?.LISTINGS)return listingsJson({error:'Photo storage is not configured.'},503);
+  const id=m[1];
+  if((request.method==='GET'||request.method==='HEAD')&&id){
+    const etag='"'+id+'"';
+    const hdr={'Cache-Control':'public, max-age=31536000, immutable','ETag':etag,'Access-Control-Allow-Origin':'*','Content-Security-Policy':"default-src 'none'; sandbox",'X-Content-Type-Options':'nosniff'};
+    if(request.headers.get('If-None-Match')===etag)return new Response(null,{status:304,headers:hdr});
+    const {value,metadata}=await env.LISTINGS.getWithMetadata('photo:'+id,{type:'arrayBuffer',cacheTtl:86400});
+    if(!value)return listingsJson({error:'Photo not found.'},404);
+    const ct=PHOTO_TYPES.includes(metadata&&metadata.ct)?metadata.ct:'image/jpeg';
+    return new Response(request.method==='HEAD'?null:value,{status:200,headers:{...hdr,'Content-Type':ct,'Content-Length':String(value.byteLength)}});
+  }
+  if(!((request.method==='POST'&&!id)||(request.method==='DELETE'&&id)))return listingsJson({error:'Method not allowed.'},405,{'Allow':id?'GET, HEAD, DELETE':'POST'});
+  const auth=authorize(request,env);
+  if(auth.missing)return listingsJson({error:'Admin access is not configured.'},503);
+  if(!auth.ok)return listingsJson({error:'Admin login required.'},401,{'WWW-Authenticate':'Basic realm="Blackstone Signature Properties & Investments Admin", charset="UTF-8"'});
+  if(request.headers.get('Origin')!==url.origin)return listingsJson({error:'Request origin is not allowed.'},403);
+  if(request.method==='DELETE'){await env.LISTINGS.delete('photo:'+id);return listingsJson({ok:true,deleted:id})}
+  const ct=(request.headers.get('Content-Type')||'').split(';')[0].trim().toLowerCase();
+  if(!PHOTO_TYPES.includes(ct))return listingsJson({error:'Upload a JPEG, WebP or PNG image.'},415);
+  if(Number(request.headers.get('Content-Length'))>PHOTO_MAX)return listingsJson({error:'Photo is too large (max 3 MB).'},413);
+  const buf=await request.arrayBuffer();
+  if(!buf.byteLength)return listingsJson({error:'Empty upload.'},400);
+  if(buf.byteLength>PHOTO_MAX)return listingsJson({error:'Photo is too large (max 3 MB).'},413);
+  const kind=photoKind(buf);if(!kind||kind!==ct)return listingsJson({error:'That file is not a valid image.'},400);
+  const nid=Date.now().toString(36)+crypto.randomUUID().replace(/-/g,'').slice(0,16);
+  await env.LISTINGS.put('photo:'+nid,buf,{metadata:{ct:kind,size:buf.byteLength,at:new Date().toISOString()}});
+  return listingsJson({ok:true,id:nid,url:'/api/listing-photo/'+nid,size:buf.byteLength},201);
 }
 // ---- end Listings API ----
 const worker = {
@@ -992,6 +1039,7 @@ const worker = {
       const rejection=await guardApi(request,env); if(rejection)return rejection;
     }
     if(normalized==='/api/listings'||normalized.startsWith('/api/listings/'))return handleListings(request,env,adminHubAuthorized);
+    if(normalized==='/api/listing-photo'||normalized.startsWith('/api/listing-photo/'))return handleListingPhoto(request,env,adminHubAuthorized);
     if (/^\/(?:admin-hub|listing-manager)(?:\.html)?$/.test(normalized)) {
       const auth=adminHubAuthorized(request,env);
       if(auth.missing)return new Response('Admin access is not configured.',{status:503,headers:{'Cache-Control':'no-store'}});
@@ -1030,6 +1078,9 @@ const worker = {
       return handleRates();
     }
 
+    // The old apply page was tied to one property (2413 Santa Cruz Ct). Each rental now carries its own RentSpree link,
+    // shown on the Available rentals list, so /apply goes there.
+    if((request.method==='GET'||request.method==='HEAD')&&(normalized==='/apply'||normalized==='/apply.html'))return new Response(null,{status:301,headers:{'Location':'/property-management.html#rentals','Cache-Control':'public, max-age=3600'}});
     // SEO: 301 duplicate page URLs (/index.html, extensionless, trailing slash,
     // root-level copies of area/article pages) to the URL in each page's canonical tag.
     if((request.method==='GET'||request.method==='HEAD')&&!url.pathname.startsWith('/api/')){

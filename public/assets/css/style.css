@@ -241,8 +241,8 @@ section{position:relative}.sec{padding:clamp(72px,10vw,130px) 0}
 .pin:after{content:"";position:absolute;left:50%;bottom:-6px;margin-left:-5px;border:5px solid transparent;border-top-color:#fff3d1;border-bottom:0}
 .pin.hot{background:var(--aqua);color:#02201b;transform:translate(-50%,-50%) scale(1.18);z-index:999;border-color:#fff}
 .pin-wrap{background:none;border:0}
-.leaflet-popup-content-wrapper{border-radius:16px;padding:0;overflow:hidden;background:var(--night);color:var(--text);border:1px solid var(--line)}
-.leaflet-popup-content{margin:0;width:260px!important}.leaflet-popup-tip{background:var(--night)}
+.leaflet-container .leaflet-popup-content-wrapper{border-radius:16px;padding:0;overflow:hidden;background:var(--night);color:var(--text);border:1px solid var(--line)}
+.leaflet-popup-content{margin:0;width:260px!important}.leaflet-container .leaflet-popup-tip{background:var(--night)}.leaflet-container a.leaflet-popup-close-button{color:#fff;z-index:2;background:rgba(5,8,22,.6);border-radius:50%;top:6px;right:6px;width:26px;height:26px;line-height:24px}
 .pop img{width:100%;height:140px;object-fit:cover}.pop div{padding:12px 14px}.pop b{font-family:var(--serif);font-size:1.4rem;color:var(--gold-2)}
 .leaflet-control-zoom a{background:var(--night)!important;color:var(--gold)!important;border-color:var(--line)!important}
 .leaflet-control-attribution{background:rgba(5,8,22,.7)!important;color:#8892b0!important}.leaflet-control-attribution a{color:#b8c1dd!important}
@@ -527,3 +527,18 @@ html{-webkit-text-size-adjust:100%;text-size-adjust:100%}html,body{max-width:100
 .iv-tool .tool-in>fieldset{grid-column:1/-1}.iv-tool .tool-grid>*{min-width:0}.iv-tool .tool-out>*{min-width:0;max-width:100%}
 /* search.html mobile map view: keep the AI chip available inside the opaque bottom bar (never over the map or cards) */
 @media (max-width:820px){body.search-page #bsai2.mapopen .ai-fab{display:inline-flex}}
+/* own listings: popup CTAs + featured/rentals cards */
+.pop.own .pop-ctas{padding:8px 0 0;display:flex;flex-direction:column;gap:6px}.pop .pop-ctas a{color:var(--aqua-2);font-weight:600}.pop .pop-ctas a.pop-cta{display:inline-block;background:var(--gold);color:#140f02;padding:8px 12px;border-radius:999px;text-align:center;text-decoration:none}
+.pop .pop-desc{display:block;font-size:.85rem;color:#d5dbec;margin:4px 0}.pop .pop-spec{font-size:.85rem}.pop .pop-spec b{font-family:inherit;font-size:inherit;color:#fff}.pop.own{position:relative}.pop .pop-n{position:absolute;top:110px;right:8px;font-size:.7rem;background:rgba(5,8,22,.8);padding:3px 8px;border-radius:999px}
+.olgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:22px;margin-top:22px}
+.olcard{border-radius:20px;overflow:hidden;background:var(--navy);border:1px solid var(--line);display:flex;flex-direction:column}
+.olcard .ph{position:relative;aspect-ratio:16/10;background:#0a1030}.olcard .ph img{width:100%;height:100%;object-fit:cover;display:block}
+.olcard .badge{position:absolute;left:12px;top:12px}
+.olcard .olnav{position:absolute;top:50%;transform:translateY(-50%);width:38px;height:38px;border-radius:50%;border:0;background:rgba(5,8,22,.7);color:#fff;font-size:1.4rem;cursor:pointer}.olcard .olnav.prev{left:10px}.olcard .olnav.next{right:10px}
+.olcard .olcount{position:absolute;right:12px;bottom:12px;font-size:.75rem;background:rgba(5,8,22,.75);padding:4px 9px;border-radius:999px}
+.olcard .body{padding:18px 20px 20px;display:flex;flex-direction:column;gap:6px;flex:1}
+.olprice{font-family:var(--serif);font-size:1.9rem;font-weight:600;color:var(--gold-2);line-height:1.05}.olspec{color:#fff;font-weight:600}.oladdr{color:var(--muted);font-size:.92rem}
+.oldesc{color:#d5dbec;font-size:.92rem;margin:4px 0 6px}.oldesc summary{cursor:pointer;list-style:none}.oldesc summary::-webkit-details-marker{display:none}.oldesc .more{color:var(--aqua-2);font-weight:600;white-space:nowrap}.oldesc[open] summary .s{display:none}.oldesc[open] summary .more::after{content:" (less)"}.oldesc[open] summary .more{font-size:0}.oldesc[open] summary .more::after{font-size:.92rem}.oldesc p{margin:0}
+.olcard .btn-row{margin-top:auto;padding-top:10px}
+.olempty{border:1px dashed var(--line);border-radius:20px;padding:26px;background:rgba(255,255,255,.02)}.olempty p{color:var(--muted);margin:6px 0 14px}
+@media (max-width:820px){.pop img{height:110px}.pop .pop-desc{display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}.pop .pop-n{top:80px}}

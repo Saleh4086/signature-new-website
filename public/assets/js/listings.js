@@ -47,23 +47,32 @@ window.BSP_SAMPLES=[
     else{try{const d=JSON.parse(localStorage.getItem(KEY)||'[]');if(Array.isArray(d))a=d}catch(_){}}
     return a.filter(x=>x&&typeof x==='object'&&String(x.address||'').trim())}
   function num(re,s){const m=String(s||'').match(re);return m?parseFloat(m[1].replace(/,/g,'')):0}
+  // Share/page links (Google Photos albums, Drive viewers, Zillow pages…) are web pages, not images: show the placeholder instead.
+  const NOT_IMG=/^https?:\/\/(?:photos\.app\.goo\.gl|goo\.gl|photos\.google\.com|drive\.google\.com\/(?:file|drive|open)|(?:www\.)?(?:zillow|redfin|realtor|trulia)\.com|(?:www\.)?dropbox\.com\/s(?:h|cl)?\/|1drv\.ms|onedrive\.live\.com|(?:www\.)?icloud\.com\/(?:photos|sharedalbum))/i;
+  const imgUrl=v=>{const u=safeUrl(v);return u&&!NOT_IMG.test(u)?u:''};
+  const fmtPrice=(p,st)=>{const t=String(p||'').trim().slice(0,60);if(!t)return st==='rental'?'Ask for rent':'Contact Sal';
+    if(/^\$?\s*[\d,]+(?:\.\d+)?\s*$/.test(t)){const n=parseFloat(t.replace(/[$,\s]/g,''));if(n>0)return '$'+Math.round(n).toLocaleString('en-US')+(st==='rental'&&n<50000?'/mo':'')}
+    return t};
   function apply(){const raw=read(); if(!raw.length){window.BSP_OWN=false;return}
   const cities=Object.assign({},...Object.entries(window.BSP_CITIES||{}).map(([k,v])=>({[k]:v.c})),APPROX);
   window.BSP_OWN=true;
   window.BSP_SAMPLES=raw.slice(0,200).map((x,i)=>{
-    const addr=String(x.address).slice(0,200), meta=String(x.meta||'').slice(0,300);
+    const addr=String(x.address).slice(0,200), meta=String(x.meta||'').slice(0,1500);
     const city=Object.keys(cities).find(c=>new RegExp('\\b'+c.replace(/ /g,'\\s+')+'\\b','i').test(addr))||'';
     const ll=city?cities[city]:null, j=((i*7)%11-5)*0.0016, k=((i*5)%9-4)*0.0016;
+    const own=Number.isFinite(+x.lat)&&Number.isFinite(+x.lng)&&x.lat!=null&&x.lng!=null&&x.lat!==''?[+x.lat,+x.lng]:null;
     const st=LABEL[x.status]?x.status:'for-sale';
     const t=/townho/i.test(meta)?'Townhome':/condo/i.test(meta)?'Condo':/multi|duplex|triplex|fourplex|units?\b/i.test(meta)?'Multi-family':/\bland|\blot\b|acre/i.test(meta)?'Land':'House';
-    return {id:1000+i,own:true,status:st,badge:LABEL[st],title:esc(addr),city:esc(city),lat:ll?ll[0]+j:null,lng:ll?ll[1]+k:null,approx:!!ll,
-      price:num(/\$?\s*([\d,]+(?:\.\d+)?)/,x.price),priceText:esc(String(x.price||'').slice(0,60)||'Contact Sal'),
-      beds:num(/([\d.]+)\s*(?:bd|bds|bed|beds|br|bedroom)/i,meta),baths:num(/([\d.]+)\s*(?:ba|bath|baths|bathroom)/i,meta),sqft:num(/([\d,]+)\s*(?:sq\.?\s*ft|sqft|sf)\b/i,meta),
-      meta:esc(meta),type:t,photo:safeUrl(x.photo),link:safeUrl(x.url)}});
+    const photos=(Array.isArray(x.photos)&&x.photos.length?x.photos:[x.photo]).map(imgUrl).filter(Boolean).slice(0,12);
+    const n=(v,re)=>{const f=parseFloat(v);return f>0?f:num(re,meta)};
+    return {id:1000+i,own:true,status:st,badge:LABEL[st],title:esc(addr),city:esc(city),lat:own?own[0]:ll?ll[0]+j:null,lng:own?own[1]:ll?ll[1]+k:null,approx:!own&&!!ll,
+      price:num(/\$?\s*([\d,]+(?:\.\d+)?)/,x.price),priceText:esc(fmtPrice(x.price,st)),
+      beds:n(x.beds,/([\d.]+)\s*(?:bd|bds|bed|beds|br|bedroom)/i),baths:n(x.baths,/([\d.]+)\s*(?:ba|bath|baths|bathroom)/i),sqft:n(x.sqft,/([\d,]+)\s*(?:sq\.?\s*ft|sqft|sf)\b/i),
+      meta:esc(meta),type:t,photo:photos[0]||'',photos,link:safeUrl(x.url),apply:safeUrl(x.apply),hadPhoto:!!String(x.photo||'').trim()||(Array.isArray(x.photos)&&x.photos.length>0)}});
   }
-  /* Server feed: /api/listings (saved by the Listing Manager). Waits at most 2.5 s, then falls back to samples. */
+  /* Server feed: /api/listings (saved by the Listing Manager). Waits at most 5 s, then falls back to samples. */
   window.BSP_READY=new Promise(done=>{
-    let ok=false; const t=setTimeout(()=>{if(!ok){ok=true;apply();done()}},2500);
+    let ok=false; const t=setTimeout(()=>{if(!ok){ok=true;apply();done()}},5000);
     fetch('/api/listings',{headers:{Accept:'application/json'}}).then(r=>r.ok?r.json():null).then(d=>{
       if(d&&Array.isArray(d.listings))window.BSP_LISTINGS_FEED=d.listings;
     }).catch(()=>{}).then(()=>{if(!ok){ok=true;clearTimeout(t);apply();done()}});
