@@ -68,7 +68,7 @@
     pmap.on('click',e=>setPin(e.latlng.lat,e.latlng.lng,'manual'));drawPin()}
   function drawPin(){if(!pmap)return;const L=window.L;
     if(!pin){if(pmk){pmap.removeLayer(pmk);pmk=null}return}
-    if(!pmk){pmk=L.marker([pin.lat,pin.lng],{draggable:true,autoPan:true,title:'Drag to the house'}).addTo(pmap);pmk.on('dragend',()=>{const p=pmk.getLatLng();setPin(p.lat,p.lng,'manual')})}
+    if(!pmk){pmk=L.marker([pin.lat,pin.lng],{draggable:true,autoPan:true,title:'Drag to the house',icon:L.divIcon({className:'lm-pin',html:'<span></span>',iconSize:[26,26],iconAnchor:[13,26]})}).addTo(pmap);pmk.on('dragend',()=>{const p=pmk.getLatLng();setPin(p.lat,p.lng,'manual')})}
     else pmk.setLatLng([pin.lat,pin.lng]);
     pmap.setView([pin.lat,pin.lng],Math.max(pmap.getZoom(),18))}
   function setPin(lat,lng,src,matched){lat=+(+lat).toFixed(6);lng=+(+lng).toFixed(6);
