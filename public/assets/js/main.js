@@ -125,6 +125,30 @@
     });
   });
 
+  // Approved reviews only, via the Worker proxy. The section stays hidden when there are none or the call fails.
+  const reviewMount=document.querySelector('[data-client-reviews]');
+  if(reviewMount){
+    const reviewDate=value=>{const s=String(value||'').trim(); if(!s)return '';
+      if(/^\d{4}-\d{2}-\d{2}/.test(s)){const d=new Date(s); if(!Number.isNaN(d.getTime()))return d.toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric',timeZone:'UTC'});}
+      return /^[A-Za-z0-9 ,./:-]{4,40}$/.test(s)?s:'';};
+    fetch('/api/reviews',{headers:{Accept:'application/json'}}).then(r=>r.ok?r.json():null).then(data=>{
+      const list=data&&Array.isArray(data.reviews)?data.reviews:[];
+      list.forEach(item=>{
+        const name=String(item.name||'').trim(), text=String(item.text||'').trim(), rating=Number(item.rating);
+        if(!name||!text||!Number.isInteger(rating)||rating<1||rating>5)return;
+        const fig=document.createElement('figure'); fig.className='review';
+        const stars=document.createElement('div'); stars.className='stars'; stars.setAttribute('aria-label',rating+' out of 5 stars');
+        stars.textContent='★★★★★'.slice(0,rating)+'☆☆☆☆☆'.slice(0,5-rating);
+        const quote=document.createElement('blockquote'); quote.textContent=text;
+        const cap=document.createElement('figcaption'); cap.className='who';
+        const who=document.createElement('b'); who.style.color='#fff'; who.textContent=name; cap.append(who);
+        const when=reviewDate(item.date); if(when)cap.append(document.createTextNode(' · '+when));
+        fig.append(stars,quote,cap); reviewMount.append(fig);
+      });
+      if(reviewMount.childElementCount){const sec=document.getElementById('client-reviews'); if(sec)sec.hidden=false;}
+    }).catch(()=>{});
+  }
+
   // home search box → map search page
   $$('.chip[data-q]').forEach(c=>c.addEventListener('click',()=>{const i=$('#hq');if(i){i.value=c.dataset.q;$$('.chip[data-q]').forEach(x=>x.classList.toggle('on',x===c))}}));
 

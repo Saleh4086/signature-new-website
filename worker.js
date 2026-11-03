@@ -1,5 +1,5 @@
-const PUBLIC_PAGE_PATHS=new Set(["/about","/admin-hub","/ai-tools","/antioch","/apply","/areas/antioch","/areas/bay-point","/areas/brentwood","/areas/byron","/areas/concord","/areas/discovery-bay","/areas/oakley","/areas/pittsburg","/areas/walnut-creek","/articles/brentwood-neighborhood-home-buying-guide","/articles/california-landlord-property-management-guide","/articles/discovery-bay-real-estate-guide","/articles/east-bay-home-buying-guide","/articles/first-time-home-buyer-guide-california","/articles/mortgage-rate-payment-planning-guide","/articles/rental-property-investment-analysis","/bay-point","/blog","/brentwood-neighborhood-home-buying-guide","/brentwood","/buyers","/byron","/california-landlord-property-management-guide","/concord","/contact","/discovery-bay-real-estate-guide","/discovery-bay","/east-bay-home-buying-guide","/education","/first-time-home-buyer-guide-california","/home-value","/index","/INSTALL_SNIPPET","/listing-manager","/mortgage-calculator","/mortgage-rate-payment-planning-guide","/oakley","/pittsburg","/preview","/privacy-policy","/properties","/property-management","/rental-evaluation","/rental-property-investment-analysis","/repair-request","/search","/sellers","/service-areas","/terms","/walnut-creek"]);
-const CANONICAL_PAGE_PATHS=new Map([["/INSTALL_SNIPPET","/INSTALL_SNIPPET.html"],["/about","/about.html"],["/ai-tools","/ai-tools.html"],["/antioch","/areas/antioch.html"],["/apply","/apply.html"],["/areas/antioch","/areas/antioch.html"],["/areas/bay-point","/areas/bay-point.html"],["/areas/brentwood","/areas/brentwood.html"],["/areas/byron","/areas/byron.html"],["/areas/concord","/areas/concord.html"],["/areas/discovery-bay","/areas/discovery-bay.html"],["/areas/oakley","/areas/oakley.html"],["/areas/pittsburg","/areas/pittsburg.html"],["/areas/walnut-creek","/areas/walnut-creek.html"],["/articles/brentwood-neighborhood-home-buying-guide","/articles/brentwood-neighborhood-home-buying-guide.html"],["/articles/california-landlord-property-management-guide","/articles/california-landlord-property-management-guide.html"],["/articles/discovery-bay-real-estate-guide","/articles/discovery-bay-real-estate-guide.html"],["/articles/east-bay-home-buying-guide","/articles/east-bay-home-buying-guide.html"],["/articles/first-time-home-buyer-guide-california","/articles/first-time-home-buyer-guide-california.html"],["/articles/mortgage-rate-payment-planning-guide","/articles/mortgage-rate-payment-planning-guide.html"],["/articles/rental-property-investment-analysis","/articles/rental-property-investment-analysis.html"],["/bay-point","/areas/bay-point.html"],["/blog","/blog.html"],["/brentwood","/areas/brentwood.html"],["/brentwood-neighborhood-home-buying-guide","/articles/brentwood-neighborhood-home-buying-guide.html"],["/buyers","/buyers.html"],["/byron","/areas/byron.html"],["/california-landlord-property-management-guide","/articles/california-landlord-property-management-guide.html"],["/concord","/areas/concord.html"],["/contact","/contact.html"],["/discovery-bay","/areas/discovery-bay.html"],["/discovery-bay-real-estate-guide","/articles/discovery-bay-real-estate-guide.html"],["/east-bay-home-buying-guide","/articles/east-bay-home-buying-guide.html"],["/education","/education.html"],["/first-time-home-buyer-guide-california","/articles/first-time-home-buyer-guide-california.html"],["/home-value","/home-value.html"],["/index","/"],["/mortgage-calculator","/mortgage-calculator.html"],["/mortgage-rate-payment-planning-guide","/articles/mortgage-rate-payment-planning-guide.html"],["/oakley","/areas/oakley.html"],["/pittsburg","/areas/pittsburg.html"],["/preview","/preview.html"],["/privacy-policy","/privacy-policy.html"],["/properties","/properties.html"],["/property-management","/property-management.html"],["/rental-evaluation","/rental-evaluation.html"],["/rental-property-investment-analysis","/articles/rental-property-investment-analysis.html"],["/repair-request","/repair-request.html"],["/search","/search.html"],["/sellers","/sellers.html"],["/service-areas","/service-areas.html"],["/terms","/terms.html"],["/walnut-creek","/areas/walnut-creek.html"]]);
+const PUBLIC_PAGE_PATHS=new Set(["/about","/admin-hub","/ai-tools","/antioch","/apply","/areas/antioch","/areas/bay-point","/areas/brentwood","/areas/byron","/areas/concord","/areas/discovery-bay","/areas/oakley","/areas/pittsburg","/areas/walnut-creek","/articles/brentwood-neighborhood-home-buying-guide","/articles/california-landlord-property-management-guide","/articles/discovery-bay-real-estate-guide","/articles/east-bay-home-buying-guide","/articles/first-time-home-buyer-guide-california","/articles/mortgage-rate-payment-planning-guide","/articles/rental-property-investment-analysis","/bay-point","/blog","/brentwood-neighborhood-home-buying-guide","/brentwood","/buyers","/byron","/california-landlord-property-management-guide","/concord","/contact","/discovery-bay-real-estate-guide","/discovery-bay","/east-bay-home-buying-guide","/education","/first-time-home-buyer-guide-california","/home-value","/index","/INSTALL_SNIPPET","/listing-manager","/mortgage-calculator","/mortgage-rate-payment-planning-guide","/oakley","/pittsburg","/preview","/privacy-policy","/properties","/property-management","/rental-evaluation","/rental-property-investment-analysis","/repair-request","/review","/search","/sellers","/service-areas","/terms","/walnut-creek"]);
+const CANONICAL_PAGE_PATHS=new Map([["/INSTALL_SNIPPET","/INSTALL_SNIPPET.html"],["/about","/about.html"],["/ai-tools","/ai-tools.html"],["/antioch","/areas/antioch.html"],["/apply","/apply.html"],["/areas/antioch","/areas/antioch.html"],["/areas/bay-point","/areas/bay-point.html"],["/areas/brentwood","/areas/brentwood.html"],["/areas/byron","/areas/byron.html"],["/areas/concord","/areas/concord.html"],["/areas/discovery-bay","/areas/discovery-bay.html"],["/areas/oakley","/areas/oakley.html"],["/areas/pittsburg","/areas/pittsburg.html"],["/areas/walnut-creek","/areas/walnut-creek.html"],["/articles/brentwood-neighborhood-home-buying-guide","/articles/brentwood-neighborhood-home-buying-guide.html"],["/articles/california-landlord-property-management-guide","/articles/california-landlord-property-management-guide.html"],["/articles/discovery-bay-real-estate-guide","/articles/discovery-bay-real-estate-guide.html"],["/articles/east-bay-home-buying-guide","/articles/east-bay-home-buying-guide.html"],["/articles/first-time-home-buyer-guide-california","/articles/first-time-home-buyer-guide-california.html"],["/articles/mortgage-rate-payment-planning-guide","/articles/mortgage-rate-payment-planning-guide.html"],["/articles/rental-property-investment-analysis","/articles/rental-property-investment-analysis.html"],["/bay-point","/areas/bay-point.html"],["/blog","/blog.html"],["/brentwood","/areas/brentwood.html"],["/brentwood-neighborhood-home-buying-guide","/articles/brentwood-neighborhood-home-buying-guide.html"],["/buyers","/buyers.html"],["/byron","/areas/byron.html"],["/california-landlord-property-management-guide","/articles/california-landlord-property-management-guide.html"],["/concord","/areas/concord.html"],["/contact","/contact.html"],["/discovery-bay","/areas/discovery-bay.html"],["/discovery-bay-real-estate-guide","/articles/discovery-bay-real-estate-guide.html"],["/east-bay-home-buying-guide","/articles/east-bay-home-buying-guide.html"],["/education","/education.html"],["/first-time-home-buyer-guide-california","/articles/first-time-home-buyer-guide-california.html"],["/home-value","/home-value.html"],["/index","/"],["/mortgage-calculator","/mortgage-calculator.html"],["/mortgage-rate-payment-planning-guide","/articles/mortgage-rate-payment-planning-guide.html"],["/oakley","/areas/oakley.html"],["/pittsburg","/areas/pittsburg.html"],["/preview","/preview.html"],["/privacy-policy","/privacy-policy.html"],["/properties","/properties.html"],["/property-management","/property-management.html"],["/rental-evaluation","/rental-evaluation.html"],["/rental-property-investment-analysis","/articles/rental-property-investment-analysis.html"],["/repair-request","/repair-request.html"],["/review","/review.html"],["/search","/search.html"],["/sellers","/sellers.html"],["/service-areas","/service-areas.html"],["/terms","/terms.html"],["/walnut-creek","/areas/walnut-creek.html"]]);
 // Blackstone Signature Properties & Investments Worker: website assets, Gemini chat, mortgage-rate API
 const SYSTEM_PROMPT = `
 You are the Blackstone Signature Properties & Investments AI Concierge for Blackstone Signature Properties & Investments,
@@ -29,6 +29,7 @@ Rules:
 9. When current public information would improve accuracy, use Google Search grounding. Clearly distinguish general educational information from property-specific advice.
 10. Never claim access to private MLS data, private CRM records, confidential client information, or a property inspection unless that information was provided in the conversation.
 11. When the visitor appears ready to act, invite them to contact Sal at (925) 722-5144 or use the appropriate Blackstone Signature Properties & Investments website form.
+12. If a visitor wants Sal to follow up, ask for their name and an email address or phone number. Do not say you already saved their information. The website records contact details they type in the chat.
 `;
 
 const JSON_HEADERS = {
@@ -907,7 +908,7 @@ function adminHubAuthorized(request, env) {
 
 async function guardApi(request,env){
   const route=new URL(request.url).pathname.replace(/\/+$/,'');
-  const writes=['/api/leads','/api/master-repair','/api/chat'].includes(route)&&request.method==='POST';
+  const writes=['/api/leads','/api/master-repair','/api/chat','/api/review'].includes(route)&&request.method==='POST';
   if(route==='/api/chat'&&request.method!=='POST'&&(!['GET','HEAD','OPTIONS'].includes(request.method)||new URL(request.url).searchParams.has('message')))return json({error:'Send chat messages using POST.'},405);
   if(env?.OFFLINE_PREVIEW==='true')return json({error:'Offline preview: requests are not sent.'},503);
   if(!writes)return null;
@@ -920,6 +921,8 @@ async function guardApi(request,env){
   let body;try{body=await request.clone().json()}catch{return json({error:'Invalid JSON.'},400)}
   if(!body||Array.isArray(body)||typeof body!=='object')return json({error:'Invalid submission.'},400);
   if(body?.website_url||body?.fields?.website_url)return json({error:'Invalid submission.'},400);
+  // Review form honeypot is `website` (Brokerage OS /api/website-review). Other routes keep website_url.
+  if(route==='/api/review'&&cleanLeadText(body.website,500))return json({error:'Invalid submission.'},400);
   if(route==='/api/master-repair'&&(!cleanLeadText(body.propertyAddress,400)||!cleanLeadText(body.issue,3000)||(!cleanLeadText(body.email,320)&&!cleanLeadText(body.phone,80))))return json({error:'Please provide contact details, property address and repair description.'},400);
   // Existing services do not depend on a new account binding. Enforce it when configured.
   if(env?.API_RATE_LIMITER?.limit){const result=await env.API_RATE_LIMITER.limit({key:request.headers.get('CF-Connecting-IP')||'unknown'});if(!result.success)return json({error:'Too many requests. Please try again shortly.'},429,{'Retry-After':'60'})}
@@ -1049,6 +1052,184 @@ async function handleGeocode(request,env,authorize){
   return listingsJson(await geocodeAddress(address));
 }
 // ---- end Listings API ----
+
+// Client reviews. The browser talks only to this Worker. Brokerage OS is reached server-side.
+// BROKERAGE_OS_BASE_URL overrides the default so a preview can target the Brokerage OS preview.
+// Leave it unset in production to keep https://brokerage-os-master.pages.dev.
+// BROKERAGE_OS_WEBSITE_SECRET is optional. The existing website-lead handoff does not send a
+// secret today; when this var is set, only the review forward includes it (lead saving is unchanged).
+const DEFAULT_BROKERAGE_OS_BASE = "https://brokerage-os-master.pages.dev";
+const REVIEW_RATE_WINDOW_MS = 10 * 60 * 1000;
+const REVIEW_RATE_MAX = 5;
+const reviewRateHits = new Map();
+
+function brokerageOsBase(env) {
+  const raw = String(env?.BROKERAGE_OS_BASE_URL || "").trim();
+  if (!raw) return DEFAULT_BROKERAGE_OS_BASE;
+  try {
+    const url = new URL(raw);
+    if (url.protocol !== "https:" || url.username || url.password) return DEFAULT_BROKERAGE_OS_BASE;
+    const path = url.pathname.replace(/\/+$/, "");
+    return url.origin + (path && path !== "/" ? path : "");
+  } catch {
+    return DEFAULT_BROKERAGE_OS_BASE;
+  }
+}
+
+function reviewPlain(value, maxLength) {
+  return String(value ?? "")
+    .replace(/[\u0000-\u001f\u007f]/g, " ")
+    .replace(/<script[\s\S]*?<\/script>/gi, " ")
+    .replace(/<style[\s\S]*?<\/style>/gi, " ")
+    .replace(/<[^>]*>/g, " ")
+    .replace(/\s+/g, " ")
+    .trim()
+    .slice(0, maxLength);
+}
+
+function reviewRateLimited(ip) {
+  const now = Date.now();
+  const recent = (reviewRateHits.get(ip) || []).filter((stamp) => now - stamp < REVIEW_RATE_WINDOW_MS);
+  if (recent.length >= REVIEW_RATE_MAX) {
+    reviewRateHits.set(ip, recent);
+    return true;
+  }
+  recent.push(now);
+  reviewRateHits.set(ip, recent);
+  if (reviewRateHits.size > 2000) {
+    const oldest = reviewRateHits.keys().next().value;
+    reviewRateHits.delete(oldest);
+  }
+  return false;
+}
+
+function normalizePublicReview(item) {
+  if (!item || typeof item !== "object" || Array.isArray(item)) return null;
+  const name = reviewPlain(item.display_name || item.displayName || item.name, 80);
+  const text = reviewPlain(item.text || item.review || item.body, 2000);
+  const rating = Number(item.rating);
+  const date = reviewPlain(item.date || item.created_at || item.createdAt, 40);
+  if (!name || !text || !Number.isInteger(rating) || rating < 1 || rating > 5) return null;
+  const safeDate = /^[A-Za-z0-9 ,./:-]{4,40}$/.test(date) ? date : "";
+  return { name, rating, text, date: safeDate };
+}
+
+async function handlePublicReviews(request, env) {
+  if (request.method !== "GET" && request.method !== "HEAD") {
+    return json({ error: "Method not allowed." }, 405);
+  }
+  const upstreamUrl = brokerageOsBase(env) + "/api/public/reviews";
+  const cacheKey = new Request(upstreamUrl, { method: "GET" });
+  try {
+    if (typeof caches !== "undefined" && caches.default) {
+      const hit = await caches.default.match(cacheKey);
+      if (hit) return hit;
+    }
+  } catch {}
+
+  let upstream;
+  try {
+    upstream = await fetch(upstreamUrl, {
+      method: "GET",
+      headers: { Accept: "application/json" },
+      signal: AbortSignal.timeout(6000)
+    });
+  } catch {
+    return json({ reviews: [] }, 200, { "Cache-Control": "no-store" });
+  }
+
+  const raw = await upstream.text();
+  let data = null;
+  try { data = raw ? JSON.parse(raw) : null; } catch { data = null; }
+  const list = Array.isArray(data) ? data : Array.isArray(data?.reviews) ? data.reviews : null;
+  if (!upstream.ok || !list) {
+    return json({ reviews: [] }, 200, { "Cache-Control": "no-store" });
+  }
+
+  const reviews = list.map(normalizePublicReview).filter(Boolean).slice(0, 24);
+  const response = json({ reviews }, 200, { "Cache-Control": "public, max-age=60" });
+  try {
+    if (typeof caches !== "undefined" && caches.default) {
+      await caches.default.put(cacheKey, response.clone());
+    }
+  } catch {}
+  return request.method === "HEAD" ? new Response(null, { status: 200, headers: response.headers }) : response;
+}
+
+async function handleReview(request, env) {
+  if (request.method === "OPTIONS") {
+    return new Response(null, { status: 204, headers: JSON_HEADERS });
+  }
+  if (request.method !== "POST") {
+    return json({ error: "Use POST for this endpoint." }, 405);
+  }
+
+  const ip = request.headers.get("CF-Connecting-IP") || "unknown";
+  if (reviewRateLimited(ip)) {
+    return json({ error: "Too many reviews from this network. Please try again shortly." }, 429, { "Retry-After": "600" });
+  }
+
+  let input;
+  try { input = await request.json(); }
+  catch { return json({ error: "Invalid review submission." }, 400); }
+
+  const name = reviewPlain(input?.name, 120);
+  const email = reviewPlain(input?.email, 320).toLowerCase();
+  const text = reviewPlain(input?.text, 4000);
+  const property = reviewPlain(input?.property_or_service, 200);
+  const rating = Number(input?.rating);
+  if (name.length < 2) return json({ error: "Please enter your name." }, 400);
+  if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    return json({ error: "Please enter a valid email, or leave it blank." }, 400);
+  }
+  if (!Number.isInteger(rating) || rating < 1 || rating > 5) {
+    return json({ error: "Please choose a star rating from 1 to 5." }, 400);
+  }
+  if (text.length < 10) return json({ error: "Please write a short review (at least a sentence)." }, 400);
+  if (input?.consent !== true) {
+    return json({ error: "Please confirm we may publish your review after approval." }, 400);
+  }
+
+  const payload = {
+    name,
+    email,
+    rating,
+    text,
+    property_or_service: property,
+    consent: true,
+    website: ""
+  };
+  const headers = { "Content-Type": "application/json", Accept: "application/json" };
+  const secret = String(env?.BROKERAGE_OS_WEBSITE_SECRET || "").trim();
+  if (secret) headers["X-Blackstone-Website-Secret"] = secret;
+
+  let upstream;
+  try {
+    upstream = await fetch(brokerageOsBase(env) + "/api/website-review", {
+      method: "POST",
+      headers,
+      body: JSON.stringify(payload),
+      signal: AbortSignal.timeout(8000)
+    });
+  } catch (error) {
+    console.error("Website review forward failed:", error?.message || error);
+    return json({ error: "We could not submit your review. Please call (925) 722-5144." }, 502);
+  }
+
+  const raw = await upstream.text();
+  let data = null;
+  try { data = raw ? JSON.parse(raw) : null; } catch { data = null; }
+  if (!upstream.ok || !data || typeof data !== "object" || data.ok === false) {
+    console.error("Website review rejected:", upstream.status);
+    return json({ error: "We could not submit your review. Please call (925) 722-5144." }, 502);
+  }
+
+  return json({
+    ok: true,
+    message: "Thank you. Your review was received and will appear on the site after Sal approves it."
+  });
+}
+
 const worker = {
   async route(request, env) {
     const url = new URL(request.url);
@@ -1063,6 +1244,8 @@ const worker = {
     if(url.pathname.startsWith('/api/')){
       const rejection=await guardApi(request,env); if(rejection)return rejection;
     }
+    if(normalized==='/api/reviews')return handlePublicReviews(request,env);
+    if(normalized==='/api/review')return handleReview(request,env);
     if(normalized==='/api/listings'||normalized.startsWith('/api/listings/'))return handleListings(request,env,adminHubAuthorized);
     if(normalized==='/api/listing-photo'||normalized.startsWith('/api/listing-photo/'))return handleListingPhoto(request,env,adminHubAuthorized);
     if(normalized==='/api/geocode')return handleGeocode(request,env,adminHubAuthorized);

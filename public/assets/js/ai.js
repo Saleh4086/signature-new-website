@@ -58,8 +58,52 @@
     d.append(msg+' Or get an answer from Sal right away: ');
     const a=document.createElement('a');a.href='tel:'+TEL;a.textContent='call '+PHONE;d.append(a,' or ');
     const b=document.createElement('a');b.href='sms:'+TEL;b.textContent='text him';d.append(b,'.')}
+  const savedLeads=new Set();
+  function leadBits(message){
+    const email=(message.match(/[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/i)||[''])[0].toLowerCase();
+    const phoneRaw=(message.match(/(?:\+?1[\s.-]*)?(?:\(?\d{3}\)?[\s.-]*)\d{3}[\s.-]*\d{4}/)||[''])[0];
+    let phone=phoneRaw.replace(/\D/g,''); if(phone.length===11&&phone.startsWith('1'))phone=phone.slice(1);
+    if(phone.length!==10)phone='';
+    return {email:email==='gharibyar61@gmail.com'?'':email, phone:phone==='9257225144'?'':phone};
+  }
+  function leadName(message){
+    const m=message.match(/\b(?:my name is|i am|i'm|this is)\s+([A-Za-z][A-Za-z'’.-]{1,40}(?:\s+[A-Za-z][A-Za-z'’.-]{1,40}){0,2})/i);
+    return m?m[1].replace(/\s+/g,' ').trim():'';
+  }
+  function emailChatLead(fields){
+    let fr=document.getElementById('blackstone-email-frame');
+    if(!fr){fr=document.createElement('iframe');fr.id=fr.name='blackstone-email-frame';fr.hidden=true;fr.setAttribute('aria-hidden','true');document.body.appendChild(fr);}
+    const f=document.createElement('form');f.method='POST';f.action='https://formsubmit.co/gharibyar61@gmail.com';f.target='blackstone-email-frame';f.hidden=true;
+    const add=(k,v)=>{const i=document.createElement('input');i.type='hidden';i.name=k;i.value=v;f.appendChild(i)};
+    add('_subject','Blackstone Signature Properties & Investments Website - Chatbot Lead');add('_template','table');add('_captcha','false');
+    Object.entries(fields).forEach(([k,v])=>{if(v)add(k,v)});
+    document.body.appendChild(f);HTMLFormElement.prototype.submit.call(f);setTimeout(()=>f.remove(),4000);
+  }
+  function mailtoFallback(fields){
+    const d=document.createElement('div');d.className='ai-m bot note';
+    d.append('We could not save your contact details automatically. Please ');
+    const a=document.createElement('a');
+    let body='';Object.entries(fields).forEach(([k,v])=>{if(v)body+=k+': '+v+'\n'});
+    a.href='mailto:gharibyar61@gmail.com?subject='+encodeURIComponent('Chatbot lead')+'&body='+encodeURIComponent(body);
+    a.textContent='email Sal';d.append(a,document.createTextNode('.'));log.append(d);log.scrollTop=log.scrollHeight;
+  }
+  function captureChatLead(message){
+    const bits=leadBits(message); if(!bits.email&&!bits.phone)return;
+    const key=(bits.email||'')+'|'+(bits.phone||''); if(savedLeads.has(key))return; savedLeads.add(key);
+    const name=leadName(message)||'Chatbot visitor';
+    const fields={name,email:bits.email,phone:bits.phone,message:message.slice(0,2000),source:'chatbot'};
+    const body={name,email:bits.email,phone:bits.phone,message:fields.message,page:location.pathname,source:'chatbot',lead_type:'contact',consent_to_contact:true,fields};
+    fetch('/api/leads',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)}).then(async r=>{
+      const res=await r.json().catch(()=>({}));
+      if(!r.ok||res.ok===false){savedLeads.delete(key);throw new Error(res.error||'save failed');}
+      if(res.preview){const d=document.createElement('div');d.className='ai-m bot note';d.textContent=res.message||'Preview mode: the lead was not saved.';log.append(d);return;}
+      emailChatLead(fields);
+      const d=document.createElement('div');d.className='ai-m bot note';d.textContent='Thank you. Sal received your contact details and will follow up.';log.append(d);
+    }).catch(()=>{savedLeads.delete(key);mailtoFallback(fields)});
+  }
   async function ask(message){
     root.classList.add('asked');add(message,'me');input.value='';input.disabled=send.disabled=true;
+    captureChatLead(message);
     const ld=add('','bot');ld.innerHTML='<span class="ai-dots" aria-label="Thinking"><span></span><span></span><span></span></span>';
     const ac=new AbortController(),tm=setTimeout(()=>ac.abort(),35000);
     try{const r=await fetch(API,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({message,history}),signal:ac.signal});
