@@ -139,6 +139,98 @@
   launcher.addEventListener('click', () => setOpen(true));
   close.addEventListener('click', () => setOpen(false));
 
+  const savedLeads = new Set();
+  function leadBits(message) {
+    const email = (message.match(/[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/i) || [''])[0].toLowerCase();
+    const phoneRaw = (message.match(/(?:\+?1[\s.-]*)?(?:\(?\d{3}\)?[\s.-]*)\d{3}[\s.-]*\d{4}/) || [''])[0];
+    let phone = phoneRaw.replace(/\D/g, '');
+    if (phone.length === 11 && phone.startsWith('1')) phone = phone.slice(1);
+    if (phone.length !== 10) phone = '';
+    return {
+      email: email === 'gharibyar61@gmail.com' ? '' : email,
+      phone: phone === '9257225144' ? '' : phone
+    };
+  }
+  function leadName(message) {
+    const match = message.match(/\b(?:my name is|i am|i'm|this is)\s+([A-Za-z][A-Za-z'’.-]{1,40}(?:\s+[A-Za-z][A-Za-z'’.-]{1,40}){0,2})/i);
+    return match ? match[1].replace(/\s+/g, ' ').trim() : '';
+  }
+  function emailChatLead(fields) {
+    let frame = document.getElementById('blackstone-email-frame');
+    if (!frame) {
+      frame = document.createElement('iframe');
+      frame.id = frame.name = 'blackstone-email-frame';
+      frame.hidden = true;
+      frame.setAttribute('aria-hidden', 'true');
+      document.body.appendChild(frame);
+    }
+    const formEl = document.createElement('form');
+    formEl.method = 'POST';
+    formEl.action = 'https://formsubmit.co/gharibyar61@gmail.com';
+    formEl.target = 'blackstone-email-frame';
+    formEl.hidden = true;
+    const add = (key, value) => {
+      const inputEl = document.createElement('input');
+      inputEl.type = 'hidden';
+      inputEl.name = key;
+      inputEl.value = value;
+      formEl.appendChild(inputEl);
+    };
+    add('_subject', 'Blackstone Signature Properties & Investments Website - Chatbot Lead');
+    add('_template', 'table');
+    add('_captcha', 'false');
+    Object.entries(fields).forEach(([key, value]) => { if (value) add(key, value); });
+    document.body.appendChild(formEl);
+    HTMLFormElement.prototype.submit.call(formEl);
+    setTimeout(() => formEl.remove(), 4000);
+  }
+  function mailtoFallback(fields) {
+    const item = document.createElement('div');
+    item.className = 'bsai-message assistant';
+    item.append('We could not save your contact details automatically. Please ');
+    const link = document.createElement('a');
+    let body = '';
+    Object.entries(fields).forEach(([key, value]) => { if (value) body += `${key}: ${value}\n`; });
+    link.href = 'mailto:gharibyar61@gmail.com?subject=' + encodeURIComponent('Chatbot lead') + '&body=' + encodeURIComponent(body);
+    link.textContent = 'email Sal';
+    item.append(link, document.createTextNode('.'));
+    messages.appendChild(item);
+    messages.scrollTop = messages.scrollHeight;
+  }
+  function captureChatLead(message) {
+    const bits = leadBits(message);
+    if (!bits.email && !bits.phone) return;
+    const key = (bits.email || '') + '|' + (bits.phone || '');
+    if (savedLeads.has(key)) return;
+    savedLeads.add(key);
+    const name = leadName(message) || 'Chatbot visitor';
+    const fields = { name, email: bits.email, phone: bits.phone, message: message.slice(0, 2000), source: 'chatbot' };
+    const body = {
+      name, email: bits.email, phone: bits.phone, message: fields.message,
+      page: location.pathname, source: 'chatbot', lead_type: 'contact', consent_to_contact: true, fields
+    };
+    fetch('/api/leads', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body)
+    }).then(async (response) => {
+      const result = await response.json().catch(() => ({}));
+      if (!response.ok || result.ok === false) {
+        savedLeads.delete(key);
+        throw new Error(result.error || 'save failed');
+      }
+      if (result.preview) {
+        addMessage(result.message || 'Preview mode: the lead was not saved.', 'assistant');
+        return;
+      }
+      emailChatLead(fields);
+      addMessage('Thank you. Sal received your contact details and will follow up.', 'assistant');
+    }).catch(() => {
+      savedLeads.delete(key);
+      mailtoFallback(fields);
+    });
+  }
+
   form.addEventListener('submit', async (event) => {
     event.preventDefault();
     const message = input.value.trim();
@@ -147,6 +239,7 @@
     addMessage(message, 'user');
     input.value = '';
     input.disabled = true;
+    captureChatLead(message);
 
     const loading = addMessage('Thinking…', 'assistant loading');
 
