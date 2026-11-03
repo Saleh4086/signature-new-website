@@ -13,6 +13,12 @@
   "kv_namespaces": [
     { "binding": "LISTINGS", "id": "1ecc1af7d0084b9588187b77e602fb94" }
   ],
-  "preview_urls": false,
-  "keep_vars": true
+  // Production plain vars only. keep_vars false drops plain vars that are not listed here,
+  // so a main deploy cannot inherit preview-only vars. Do not add BROKERAGE_OS_BASE_URL.
+  // Secrets are not affected by keep_vars.
+  "vars": {
+    "BROKERAGE_OS_WEBSITE_LEADS_ENABLED": "true"
+  },
+  "preview_urls": true,
+  "keep_vars": false
 }

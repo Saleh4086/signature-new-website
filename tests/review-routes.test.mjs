@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
 import worker from "../worker.js";
 
 const calls = [];
@@ -174,6 +175,35 @@ async function main() {
   res = await worker.fetch(new Request("https://preview.example/review"), baseEnv);
   assert.equal(res.status, 301);
   assert.equal(res.headers.get("Location"), "/review.html");
+
+  res = await worker.fetch(new Request("https://preview.example/request-review"), baseEnv);
+  assert.equal(res.status, 301);
+  assert.equal(res.headers.get("Location"), "/request-review.html");
+
+  res = await worker.fetch(new Request("https://preview.example/request-review.html"), baseEnv);
+  assert.equal(res.status, 200);
+  assert.match(res.headers.get("X-Robots-Tag") || "", /noindex/);
+
+  const requestReview = readFileSync(new URL("../public/request-review.html", import.meta.url), "utf8");
+  assert.match(requestReview, /<meta name="robots" content="noindex">/);
+  assert.match(requestReview, /How did we do\?/);
+  assert.match(requestReview, /Your feedback helps other owners and investors find a partner they can trust\./);
+  assert.match(requestReview, /placeholder="First name and last initial"/);
+  assert.match(requestReview, /placeholder="Tell us about your experience\.\.\."/);
+  assert.match(requestReview, /minlength="10"/);
+  assert.match(requestReview, /I agree Blackstone Signature may share my review on its website and social media\./);
+  assert.match(requestReview, /name="website"/);
+  assert.match(requestReview, /\/api\/review/);
+  assert.match(requestReview, /email: String\(fd\.get\('email'\) \|\| ''\)/);
+  assert.match(requestReview, /website: String\(fd\.get\('website'\) \|\| ''\)/);
+  assert.match(requestReview, /https:\/\/www\.facebook\.com\/BlackStone1977/);
+  assert.match(requestReview, /https:\/\/www\.instagram\.com\/salehgharibyar\//);
+  assert.match(requestReview, /mailto:Gharibyar61@gmail\.com/);
+  for (const option of ["Property management", "Buying", "Selling", "Investing", "Other"]) {
+    assert.match(requestReview, new RegExp("<option>" + option + "</option>"));
+  }
+  assert.equal(readFileSync(new URL("../public/sitemap.xml", import.meta.url), "utf8").includes("request-review"), false);
+  assert.equal(readFileSync(new URL("../public/index.html", import.meta.url), "utf8").includes("request-review"), false);
 
   res = await worker.fetch(new Request("https://preview.example/admin-hub"), baseEnv);
   assert.equal(res.status, 401);
