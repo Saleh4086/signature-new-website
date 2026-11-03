@@ -1,0 +1,333 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>How did we do? | Blackstone Signature</title>
+<meta name="robots" content="noindex">
+<meta name="description" content="Share a review of Blackstone Signature. It appears after approval.">
+<link rel="canonical" href="https://blackstonesignatureproperty.com/request-review.html">
+<meta name="theme-color" content="#12285a">
+<link rel="icon" href="favicon.ico" sizes="any">
+<link rel="icon" type="image/png" sizes="32x32" href="assets/favicon-32x32.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;1,500&family=Inter:wght@400;500;600&display=swap">
+<style>
+  :root { color-scheme: dark; }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; min-height: 100%; }
+  body {
+    font-family: Inter, system-ui, -apple-system, "Segoe UI", sans-serif;
+    color: #f3efe6;
+    background:
+      radial-gradient(120% 55% at 50% -8%, #1e3d7a 0%, rgba(30, 61, 122, 0) 58%),
+      linear-gradient(180deg, #17306a 0%, #14306a 18%, #12285a 48%, #102454 100%);
+  }
+  .page {
+    width: min(100%, 440px);
+    margin: 0 auto;
+    padding: 28px 22px calc(28px + env(safe-area-inset-bottom));
+  }
+  .logo {
+    display: block;
+    width: min(232px, 68%);
+    height: auto;
+    margin: 8px auto 18px;
+  }
+  h1 {
+    margin: 0;
+    text-align: center;
+    font-family: "Cormorant Garamond", Georgia, "Times New Roman", serif;
+    font-weight: 500;
+    font-size: 2.15rem;
+    letter-spacing: 0.01em;
+    line-height: 1.15;
+    color: #f7f4ee;
+  }
+  .sub {
+    margin: 12px auto 22px;
+    max-width: 34ch;
+    text-align: center;
+    font-family: "Cormorant Garamond", Georgia, "Times New Roman", serif;
+    font-weight: 500;
+    font-size: 1.2rem;
+    line-height: 1.35;
+    color: #d5dcea;
+  }
+  .card {
+    background: #0f2554;
+    border-radius: 8px;
+    border-top: 2px solid #d4af5a;
+    box-shadow: 0 0 0 1px rgba(36, 55, 106, 0.85);
+    padding: 18px 16px 16px;
+  }
+  .stars {
+    display: flex;
+    justify-content: center;
+    gap: 16px;
+    margin: 4px 0 6px;
+  }
+  .star { position: relative; }
+  .star input {
+    position: absolute;
+    inset: 0;
+    opacity: 0;
+    margin: 0;
+    cursor: pointer;
+  }
+  .star label {
+    display: block;
+    font-size: 34px;
+    line-height: 1;
+    color: #3a4a78;
+    cursor: pointer;
+    user-select: none;
+  }
+  .star label.on { color: #d4af5a; }
+  .star input:focus-visible + label { outline: 2px solid #d4af5a; outline-offset: 2px; }
+  .sr {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+  }
+  .lbl {
+    display: block;
+    margin: 16px 0 8px;
+    color: #d4af5a;
+    font-size: 0.72rem;
+    font-weight: 600;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    font-variant-caps: all-small-caps;
+  }
+  input[type="text"], select, textarea {
+    width: 100%;
+    margin: 0;
+    border: 1px solid #24376a;
+    border-radius: 5px;
+    background: #07142e;
+    color: #f3efe6;
+    font: 16px/1.4 Inter, system-ui, sans-serif;
+    padding: 12px 14px;
+  }
+  textarea { min-height: 132px; resize: vertical; }
+  select {
+    appearance: none;
+    background-image:
+      linear-gradient(45deg, transparent 50%, #c5cedf 50%),
+      linear-gradient(135deg, #c5cedf 50%, transparent 50%);
+    background-position: calc(100% - 18px) calc(50% - 2px), calc(100% - 12px) calc(50% - 2px);
+    background-size: 6px 6px, 6px 6px;
+    background-repeat: no-repeat;
+    padding-right: 32px;
+  }
+  input::placeholder, textarea::placeholder { color: #8e9bb3; }
+  input:focus, select:focus, textarea:focus {
+    outline: 2px solid rgba(212, 175, 90, 0.65);
+    outline-offset: 1px;
+  }
+  .consent {
+    display: flex;
+    gap: 12px;
+    align-items: flex-start;
+    margin-top: 16px;
+    color: #c5cedf;
+    font-size: 0.92rem;
+    line-height: 1.35;
+  }
+  .consent input {
+    appearance: none;
+    width: 18px;
+    height: 18px;
+    margin: 1px 0 0;
+    flex: none;
+    border: 1.5px solid #8b97ad;
+    border-radius: 3px;
+    background: transparent;
+    display: grid;
+    place-items: center;
+  }
+  .consent input:checked { background: #d4af5a; border-color: #d4af5a; }
+  .consent input:checked::after {
+    content: "";
+    width: 5px;
+    height: 9px;
+    border: solid #0f2554;
+    border-width: 0 2px 2px 0;
+    transform: rotate(45deg) translate(-1px, -1px);
+  }
+  .consent input:focus-visible { outline: 2px solid #d4af5a; outline-offset: 2px; }
+  .submit {
+    display: block;
+    width: 100%;
+    margin-top: 16px;
+    border: 0;
+    border-radius: 3px;
+    background: #646461;
+    color: #f7f4ee;
+    font: 600 16px/1 Inter, system-ui, sans-serif;
+    letter-spacing: 0.02em;
+    padding: 14px 16px;
+    cursor: pointer;
+  }
+  .submit:disabled { opacity: 0.7; cursor: default; }
+  .hp {
+    position: absolute;
+    left: -9999px;
+    width: 1px;
+    height: 1px;
+    opacity: 0;
+  }
+  .form-status { margin: 12px 0 0; color: #f0d0d0; font-size: 0.92rem; line-height: 1.4; }
+  .form-status a { color: #f4e2b0; }
+  .thanks h2 {
+    margin: 4px 0 10px;
+    font-family: "Cormorant Garamond", Georgia, serif;
+    font-weight: 500;
+    font-size: 2rem;
+    text-align: center;
+  }
+  .thanks p { margin: 0; text-align: center; color: #d5dcea; line-height: 1.45; }
+  .share-label {
+    margin-top: 18px !important;
+    color: #d4af5a;
+    font-size: 0.72rem;
+    font-weight: 600;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    font-variant-caps: all-small-caps;
+  }
+  .share { display: flex; justify-content: center; gap: 18px; margin-top: 10px; }
+  .share a { color: #f4e2b0; font-weight: 600; text-decoration: none; }
+  .share a:hover { text-decoration: underline; }
+</style>
+</head>
+<body>
+<main class="page">
+  <img class="logo" src="assets/logo-transparent.png" alt="Blackstone Signature Properties and Investments" width="368" height="267">
+  <div class="intro">
+    <h1>How did we do?</h1>
+    <p class="sub">Your feedback helps other owners and investors find a partner they can trust.</p>
+  </div>
+  <form class="card" id="review-form">
+    <div class="stars" role="radiogroup" aria-label="Star rating">
+      <span class="star"><input id="star1" name="rating" type="radio" value="1" required><label for="star1"><span aria-hidden="true">★</span><span class="sr">1 star</span></label></span>
+      <span class="star"><input id="star2" name="rating" type="radio" value="2"><label for="star2"><span aria-hidden="true">★</span><span class="sr">2 stars</span></label></span>
+      <span class="star"><input id="star3" name="rating" type="radio" value="3"><label for="star3"><span aria-hidden="true">★</span><span class="sr">3 stars</span></label></span>
+      <span class="star"><input id="star4" name="rating" type="radio" value="4"><label for="star4"><span aria-hidden="true">★</span><span class="sr">4 stars</span></label></span>
+      <span class="star"><input id="star5" name="rating" type="radio" value="5"><label for="star5"><span aria-hidden="true">★</span><span class="sr">5 stars</span></label></span>
+    </div>
+    <label class="lbl" for="rv-name">Your name</label>
+    <input id="rv-name" name="name" type="text" required minlength="2" maxlength="120" autocomplete="name" placeholder="First name and last initial">
+    <label class="lbl" for="rv-service">Service</label>
+    <select id="rv-service" name="property_or_service" required>
+      <option>Property management</option>
+      <option>Buying</option>
+      <option>Selling</option>
+      <option>Investing</option>
+      <option>Other</option>
+    </select>
+    <label class="lbl" for="rv-text">Your review</label>
+    <textarea id="rv-text" name="text" required minlength="10" maxlength="4000" placeholder="Tell us about your experience..."></textarea>
+    <label class="consent"><input type="checkbox" name="consent" value="true" required> I agree Blackstone Signature may share my review on its website and social media.</label>
+    <input class="hp" name="website" tabindex="-1" autocomplete="off" aria-hidden="true" value="">
+    <button class="submit" type="submit">Submit</button>
+    <p class="form-status" role="alert"></p>
+  </form>
+  <section class="card thanks" id="review-thanks" hidden>
+    <h2>Thank you.</h2>
+    <p>Your review was received and will appear after approval.</p>
+    <p class="share-label">Share</p>
+    <div class="share">
+      <a href="https://www.facebook.com/BlackStone1977" rel="noopener noreferrer" target="_blank">Facebook</a>
+      <a href="https://www.instagram.com/salehgharibyar/" rel="noopener noreferrer" target="_blank">Instagram</a>
+    </div>
+  </section>
+</main>
+<script>
+(function () {
+  var fm = document.getElementById('review-form');
+  if (!fm) return;
+  var thanks = document.getElementById('review-thanks');
+  var intro = document.querySelector('.intro');
+  var st = fm.querySelector('.form-status');
+  var stars = Array.prototype.slice.call(fm.querySelectorAll('.star'));
+  var busy = false;
+
+  function paint(n) {
+    stars.forEach(function (star, i) {
+      star.querySelector('label').classList.toggle('on', i < n);
+    });
+  }
+  stars.forEach(function (star, i) {
+    var input = star.querySelector('input');
+    input.addEventListener('change', function () { paint(Number(input.value)); });
+    star.addEventListener('mouseenter', function () { paint(i + 1); });
+    star.addEventListener('mouseleave', function () {
+      var picked = fm.querySelector('input[name="rating"]:checked');
+      paint(picked ? Number(picked.value) : 0);
+    });
+  });
+
+  fm.addEventListener('submit', function (e) {
+    e.preventDefault();
+    if (busy) return;
+    if (!fm.querySelector('input[name="rating"]:checked')) {
+      var first = fm.querySelector('input[name="rating"]');
+      if (first) first.setCustomValidity('Please choose a star rating.');
+      fm.reportValidity();
+      if (first) first.setCustomValidity('');
+      return;
+    }
+    if (!fm.reportValidity()) return;
+    busy = true;
+    var btn = fm.querySelector('button[type="submit"]');
+    var label = btn.textContent;
+    btn.disabled = true;
+    btn.textContent = 'Sending…';
+    st.textContent = '';
+    var fd = new FormData(fm);
+    var body = {
+      name: String(fd.get('name') || ''),
+      email: String(fd.get('email') || ''),
+      rating: Number(fd.get('rating')),
+      text: String(fd.get('text') || ''),
+      property_or_service: String(fd.get('property_or_service') || ''),
+      consent: fd.get('consent') === 'true',
+      website: String(fd.get('website') || '')
+    };
+    fetch('/api/review', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) }).then(function (r) {
+      return r.json().catch(function () { return {}; }).then(function (res) { return { ok: r.ok, res: res }; });
+    }).then(function (out) {
+      if (!out.ok || out.res.ok === false) throw new Error(out.res.error || 'Request failed');
+      fm.reset();
+      paint(0);
+      fm.hidden = true;
+      if (intro) intro.hidden = true;
+      thanks.hidden = false;
+    }).catch(function (err) {
+      var msg = (err && err.message && !/^(Failed to fetch|Load failed|NetworkError)/i.test(err.message)) ? err.message : 'We could not save your review.';
+      var mail = 'mailto:Gharibyar61@gmail.com?subject=' + encodeURIComponent('Review for Blackstone Signature') + '&body=' + encodeURIComponent('Name: ' + body.name + '\nService: ' + body.property_or_service + '\nRating: ' + body.rating + '\n\n' + body.text);
+      st.replaceChildren();
+      st.append(document.createTextNode(msg + ' '));
+      var a = document.createElement('a');
+      a.href = mail;
+      a.textContent = 'Email your review to Gharibyar61@gmail.com';
+      st.append(a);
+    }).then(function () {
+      busy = false;
+      btn.disabled = false;
+      btn.textContent = label;
+    });
+  });
+})();
+</script>
+</body>
+</html>
