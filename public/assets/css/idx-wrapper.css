@@ -269,3 +269,61 @@ body.bsp-idx #blackstone-idx-content .bsp-similar-listings-heading{
  font-size:14px!important;font-weight:600!important;line-height:1.5!important;
  letter-spacing:.02em!important;text-transform:none!important;text-shadow:none!important;opacity:1!important;
 }
+
+
+/* SEARCH-CLEANUP-20261105: Advanced Search dropdown contrast */
+/* Closed fields stay cream; OPEN dropdown panels must also be cream + dark text
+   (style.css bleed previously left Select2 menus navy-on-navy / gold-on-gold). */
+body.bsp-idx:not(.bsp-native-map) :is(
+  .select2-drop,
+  .select2-dropdown,
+  .select2-results,
+  .select2-results__options,
+  .select2-container--open .select2-dropdown,
+  .select2-drop-active,
+  .ui-autocomplete,
+  .ui-menu,
+  #IDX-main .select2-results
+){
+  background:#F7F4EE!important;
+  color:#141A2E!important;
+  border:1px solid rgba(217,185,112,.7)!important;
+  box-shadow:0 12px 28px rgba(5,8,22,.35)!important;
+  z-index:10050!important;
+}
+body.bsp-idx:not(.bsp-native-map) :is(
+  .select2-result,
+  .select2-results li,
+  .select2-results__option,
+  .select2-result-label,
+  .select2-search--dropdown .select2-search__field,
+  .select2-search input,
+  .ui-menu-item,
+  .ui-menu-item-wrapper,
+  #IDX-main option
+){
+  background:#F7F4EE!important;
+  color:#141A2E!important;
+}
+body.bsp-idx:not(.bsp-native-map) :is(
+  .select2-highlighted,
+  .select2-results__option--highlighted,
+  .select2-results__option--selected,
+  .select2-result-selectable.select2-highlighted,
+  .ui-state-active,
+  .ui-state-focus
+){
+  background:#101a3a!important;
+  color:#F4E2B0!important;
+}
+/* Native <select> expanded list (mobile) */
+body.bsp-idx:not(.bsp-native-map) #IDX-main select,
+body.bsp-idx:not(.bsp-native-map) #IDX-main select option{
+  background:#F7F4EE!important;
+  color:#141A2E!important;
+  -webkit-text-fill-color:#141A2E!important;
+}
+/* Labels above Advanced Search fields stay light-on-navy */
+body.bsp-idx:not(.bsp-native-map) #IDX-main :is(label,.IDX-label,.IDX-fieldLabel,legend){
+  color:#EEF1F8!important;
+}

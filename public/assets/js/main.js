@@ -151,6 +151,23 @@
 
   // home search box → map search page
   $$('.chip[data-q]').forEach(c=>c.addEventListener('click',()=>{const i=$('#hq');if(i){i.value=c.dataset.q;$$('.chip[data-q]').forEach(x=>x.classList.toggle('on',x===c))}}));
+  /* Home hero: city chips + Search open live MLS (not a second local map). */
+  const MLS_RESULTS='https://blackstonesignatureproperty.idxbroker.com/idx/results/listings';
+  const MLS_MAP='https://blackstonesignatureproperty.idxbroker.com/idx/map/mapsearch';
+  $$('.chip[data-mls-city]').forEach(c=>c.addEventListener('click',()=>{
+    const city=(c.dataset.mlsCity||'').trim();
+    $$('.chip[data-mls-city]').forEach(x=>x.classList.toggle('on',x===c));
+    const i=$('#hq'); if(i) i.value=city;
+    location.href=city? (MLS_RESULTS+'?csv_city='+encodeURIComponent(city)) : MLS_MAP;
+  }));
+  const heroMls=$('#hero-mls-search');
+  if(heroMls){
+    heroMls.addEventListener('submit',e=>{
+      const i=heroMls.querySelector('#hq,input[name="csv_city"]');
+      const city=((i&&i.value)||'').trim();
+      if(!city){ e.preventDefault(); location.href=MLS_MAP; }
+    });
+  }
 
   const y=$('#yr'); y&&(y.textContent=new Date().getFullYear());
 })();
