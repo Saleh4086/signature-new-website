@@ -38,11 +38,59 @@
    <div class="btn-row rv d3"><a class="btn btn-gold" href="tel:+19257225144"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1.9.4 1.8.7 2.7a2 2 0 0 1-.5 2.1L8 9.8a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.4c.9.3 1.8.6 2.7.7a2 2 0 0 1 1.7 2z"/></svg> Call (925) 722-5144</a><a class="btn btn-ghost" href="sell.html#value"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20.6 13.4 13.4 20.6a2 2 0 0 1-2.8 0L2 12V2h10l8.6 8.6a2 2 0 0 1 0 2.8z"/><circle cx="7" cy="7" r="1.5"/></svg> What's my home worth?</a></div>
    <a class="rate-pill rv d3" href="rates.html" data-sid="MORTGAGE30US" data-date="2026-10-22" data-freq="weekly"><i class="dot" aria-hidden="true"></i><span>30-yr fixed avg</span><b>7.32%</b><span class="dn down"><span aria-hidden="true">▼</span><span class="sr">down</span> 0.08</span><small>Freddie Mac · week of Oct 22, 2026</small><span class="go" aria-hidden="true">→</span></a><div class="trust rv d3"><div><b><span data-count="20" data-suffix="+">20+</span></b>years in real estate</div><div><b><span data-count="300" data-suffix="+">300+</span></b>homes sold in career</div><div><b>5.0★</b>HomeLight client review</div><div><b>EN · <span lang="fa">فا</span></b>English &amp; Farsi</div></div>
   </div>
-  <form class="hero-search rv d2" id="hero-mls-search" action="https://blackstonesignatureproperty.idxbroker.com/idx/results/listings?csv_city=Discovery%20Bay&csv_zipcode=94505" method="get" role="search" onsubmit="var i=this.querySelector(\'#hq\');return window.bspMlsGo?window.bspMlsGo(i&&i.value):false;">
+  <script>
+/* Inline MLS city→zip resolver (not deferred). Survives stale main.js cache.
+   Bare csv_city alone returns LA on this IDX account; always pair csv_zipcode. */
+window.bspMlsGo=function(raw){
+  var BASE='https://blackstonesignatureproperty.idxbroker.com/idx/results/listings';
+  var ADV='https://blackstonesignatureproperty.idxbroker.com/idx/search/advanced';
+  var MAP='https://blackstonesignatureproperty.idxbroker.com/idx/map/mapsearch';
+  var C={
+    'discovery bay':'94505','brentwood':'94513','oakley':'94561','antioch':'94509,94531',
+    'concord':'94518,94519,94520,94521','walnut creek':'94595,94596,94597,94598',
+    'danville':'94506,94526','pittsburg':'94565','byron':'94514','bay point':'94565',
+    'oakland':'94601,94602,94605,94606,94607,94608,94609,94610,94611,94612,94618,94619',
+    'livermore':'94550,94551','pleasanton':'94566,94588','san ramon':'94582,94583',
+    'lafayette':'94549','orinda':'94563','martinez':'94553','clayton':'94517',
+    'alamo':'94507','moraga':'94556'
+  };
+  var A={discovbay:'discovery bay',discobay:'discovery bay',discoverybay:'discovery bay',
+    discovery:'discovery bay',dbay:'discovery bay','d bay':'discovery bay',
+    discoverypay:'discovery bay','discovery pay':'discovery bay',
+    walnutcreek:'walnut creek',wc:'walnut creek',baypoint:'bay point',sanramon:'san ramon'};
+  function norm(s){return String(s||'').toLowerCase().replace(/[^a-z0-9\s]/g,' ').replace(/\s+/g,' ').trim();}
+  function compact(s){return norm(s).replace(/\s+/g,'');}
+  function pretty(canon){return canon.split(' ').map(function(w){return w.charAt(0).toUpperCase()+w.slice(1);}).join(' ');}
+  function resolve(raw){
+    var key=norm(raw); if(!key) return null;
+    key=key.replace(/\bpay\b/g,'bay').replace(/\bbea\b/g,'bay');
+    if(C[key]) return {city:pretty(key),zips:C[key]};
+    var alias=A[compact(key)]||A[key]||A[compact(raw)];
+    if(alias&&C[alias]) return {city:pretty(alias),zips:C[alias]};
+    var cc=compact(key);
+    if(cc.indexOf('discov')===0||cc.indexOf('discover')===0) return {city:'Discovery Bay',zips:C['discovery bay']};
+    if(cc.length>=4){
+      for(var canon in C){ if(!Object.prototype.hasOwnProperty.call(C,canon)) continue;
+        var k=compact(canon); if(k.indexOf(cc)===0||cc.indexOf(k)===0) return {city:pretty(canon),zips:C[canon]}; }
+      function dist(a,b){var m=a.length,n=b.length; if(Math.abs(m-n)>2)return 99; var prev=[],i,j; for(j=0;j<=n;j++)prev[j]=j;
+        for(i=1;i<=m;i++){var cur=[i]; for(j=1;j<=n;j++){var cost=a.charAt(i-1)===b.charAt(j-1)?0:1; cur[j]=Math.min(prev[j]+1,cur[j-1]+1,prev[j-1]+cost);} prev=cur;} return prev[n];}
+      for(var canon2 in C){ if(!Object.prototype.hasOwnProperty.call(C,canon2)) continue;
+        if(dist(cc,compact(canon2))<=2) return {city:pretty(canon2),zips:C[canon2]}; }
+    }
+    return null;
+  }
+  var hit=resolve(raw);
+  if(hit){ location.href=BASE+'?csv_city='+encodeURIComponent(hit.city)+'&csv_zipcode='+encodeURIComponent(hit.zips); return false; }
+  var city=String(raw||'').trim();
+  if(!city){ location.href=BASE+'?csv_city=Discovery%20Bay&csv_zipcode=94505'; return false; }
+  location.href=ADV; return false;
+};
+</script>
+<form class="hero-search rv d2" id="hero-mls-search" action="https://blackstonesignatureproperty.idxbroker.com/idx/results/listings?csv_city=Discovery%20Bay&csv_zipcode=94505" method="get" role="search" onsubmit="event.preventDefault();var i=document.getElementById('hq');if(window.bspMlsGo){window.bspMlsGo(i&&i.value);}else{location.href=this.action;}return false;">
    <h2>Search MLS homes</h2><p>Browse active East Bay listings on the MLS. City chips and Search open the same live MLS results.</p>
    <div class="chips"><a class="chip" href="https://blackstonesignatureproperty.idxbroker.com/idx/results/listings?csv_city=Discovery%20Bay&csv_zipcode=94505" data-mls-city="Discovery Bay">Discovery Bay</a><a class="chip" href="https://blackstonesignatureproperty.idxbroker.com/idx/results/listings?csv_city=Brentwood&csv_zipcode=94513" data-mls-city="Brentwood">Brentwood</a><a class="chip" href="https://blackstonesignatureproperty.idxbroker.com/idx/results/listings?csv_city=Oakley&csv_zipcode=94561" data-mls-city="Oakley">Oakley</a><a class="chip" href="https://blackstonesignatureproperty.idxbroker.com/idx/results/listings?csv_city=Antioch&csv_zipcode=94509%2C94531" data-mls-city="Antioch">Antioch</a><a class="chip" href="https://blackstonesignatureproperty.idxbroker.com/idx/results/listings?csv_city=Concord&csv_zipcode=94518%2C94519%2C94520%2C94521" data-mls-city="Concord">Concord</a><a class="chip" href="https://blackstonesignatureproperty.idxbroker.com/idx/results/listings?csv_city=Walnut%20Creek&csv_zipcode=94595%2C94596%2C94597%2C94598" data-mls-city="Walnut Creek">Walnut Creek</a></div>
    <label class="sr" for="hq">City or neighborhood</label>
-   <div class="searchbar"><input id="hq" name="q" placeholder="City or neighborhood (e.g. Discovery Bay)" autocomplete="off"><button class="btn btn-gold" type="submit"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg> Search</button></div>
+   <div class="searchbar"><input id="hq" placeholder="City or neighborhood (e.g. Discovery Bay)" autocomplete="off" enterkeyhint="search"><button class="btn btn-gold" type="submit"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg> Search</button></div>
    <p class="note" style="margin:10px 0 0;font-size:.78rem;color:var(--muted)">Prefer the map? <a href="https://blackstonesignatureproperty.idxbroker.com/idx/map/mapsearch" style="color:var(--gold-2)">Open MLS Map Search</a>. Rentals from Sal stay in Featured homes below.</p>
   </form>
  </div>
@@ -147,7 +195,7 @@
 <nav class="mbar" aria-label="Quick contact">
  <a href="tel:+19257225144"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1.9.4 1.8.7 2.7a2 2 0 0 1-.5 2.1L8 9.8a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.4c.9.3 1.8.6 2.7.7a2 2 0 0 1 1.7 2z"/></svg>Call</a><a href="sms:+19257225144"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>Text</a><a href="mailto:gharibyar61@gmail.com"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 7-10 6L2 7"/></svg>Email</a><a class="hot" href="sell.html#value"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20.6 13.4 13.4 20.6a2 2 0 0 1-2.8 0L2 12V2h10l8.6 8.6a2 2 0 0 1 0 2.8z"/><circle cx="7" cy="7" r="1.5"/></svg>Value</a>
 </nav>
-<script src="assets/js/rates-latest.js" defer></script><script src="assets/js/main.eastbay202611052239.js?v=eastbay202611052239" defer></script><script src="assets/js/live.js?v=b18a055115" defer></script>
+<script src="assets/js/rates-latest.js" defer></script><script src="assets/js/main.eastbay202611052244.js?v=eastbay202611052244" defer></script><script src="assets/js/live.js?v=b18a055115" defer></script>
 <script src="assets/vendor/leaflet.js" defer></script><script src="assets/js/listings.js?v=4e8af703f2" defer></script><script src="assets/js/map.js?v=c77f4c65b1" defer></script><script src="assets/js/own-listings.js?v=2df7a8c0da" defer></script>
 <script src="assets/js/ai.js?v=rev20261103" defer></script>
 </body>

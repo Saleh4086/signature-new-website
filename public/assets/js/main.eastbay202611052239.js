@@ -225,6 +225,13 @@
     // Unknown free-text: do NOT post bare csv_city (returns LA). Use Advanced Search.
     location.href=MLS_ADV;
   }
+  window.bspMlsGo=function(raw){
+    const hit=resolveEastBay(raw);
+    if(hit){ location.href=mlsCityUrl(hit.city, hit.zips); return false; }
+    const city=String(raw||'').trim();
+    if(!city){ location.href=mlsCityUrl('Discovery Bay','94505'); return false; }
+    location.href=MLS_ADV; return false;
+  };
   $$('.chip[data-mls-city]').forEach(c=>c.addEventListener('click',e=>{
     const city=(c.dataset.mlsCity||'').trim();
     $$('.chip[data-mls-city]').forEach(x=>x.classList.toggle('on',x===c));
