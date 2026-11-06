@@ -39,6 +39,13 @@
  function styleActions(){
   root.querySelectorAll('a,button').forEach(element=>{
    const label=element.textContent.replace(/\s+/g,' ').trim().toLowerCase();
+   if(/^(advanced search|listing id|address|map search)$/.test(label)){
+    element.classList.add('bsp-search-tab');
+    let active=false;
+    try{active=new URL(element.href,location.href).pathname.replace(/\/$/,'').toLowerCase()===location.pathname.replace(/\/$/,'').toLowerCase();}catch{}
+    element.classList.toggle('bsp-search-tab--active',active);
+    if(active)element.setAttribute('aria-current','page');
+   }
    if(/^(modify search|new search)$/.test(label))element.classList.add('bsp-primary-search-action');
    else if(/^(previous listing|next listing)$/.test(label))element.classList.add('bsp-secondary-search-action');
   });
