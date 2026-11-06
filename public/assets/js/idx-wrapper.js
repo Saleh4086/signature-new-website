@@ -72,6 +72,10 @@
    }
   }
 
+  root.querySelectorAll('label').forEach(label=>{
+   let group=label.parentElement;
+   if(group&&group!==root&&group.querySelectorAll('label').length===1&&group.querySelector('input,select,textarea'))group.classList.add('bsp-search-field-group');
+  });
   root.querySelectorAll('input[type="submit"]').forEach(input=>{
    if(input.value&&input.value.trim().toLowerCase()==='send message'){input.value='Send inquiry';input.classList.add('bsp-detail-submit');}
   });
