@@ -60,6 +60,18 @@
    else if(/^(previous listing|next listing)$/.test(label))element.classList.add('bsp-secondary-search-action');
   });
 
+
+  // Identify the native tab row by its four known actions, not provider class names.
+  const tabs=Array.from(root.querySelectorAll('.bsp-search-tab'));
+  if(tabs.length===4){
+   let row=tabs[0].parentElement;
+   while(row&&row!==root&&!tabs.every(tab=>row.contains(tab)))row=row.parentElement;
+   if(row&&row!==root){
+    row.classList.add('bsp-search-tabs');
+    tabs.forEach(tab=>{let item=tab.parentElement;while(item&&item!==row){item.classList.add('bsp-search-tab-shell');item=item.parentElement;}});
+   }
+  }
+
   root.querySelectorAll('input[type="submit"]').forEach(input=>{
    if(input.value&&input.value.trim().toLowerCase()==='send message'){input.value='Send inquiry';input.classList.add('bsp-detail-submit');}
   });

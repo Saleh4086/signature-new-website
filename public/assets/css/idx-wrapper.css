@@ -156,3 +156,54 @@ body.bsp-idx #blackstone-idx-content .bsp-details-inquiry{padding:18px!important
 body.bsp-idx #blackstone-idx-content .bsp-details-inquiry label{font:500 .82rem/1.5 var(--sans)!important;letter-spacing:0!important;text-transform:none!important;color:#EEF1F8!important}
 body.bsp-idx #blackstone-idx-content .bsp-details-inquiry :is(h2,h3,h4,legend){font-family:var(--serif)!important;font-weight:500!important;text-transform:none!important;letter-spacing:0!important;color:#F4E2B0!important}
 body.bsp-idx #blackstone-idx-content .bsp-detail-action:focus-visible,body.bsp-idx #blackstone-idx-content .bsp-detail-submit:focus-visible{outline:2px solid #F4E2B0;outline-offset:3px}
+
+/* A single quiet control surface, with a complete two-column navigation on phones. */
+body.bsp-idx #blackstone-idx-content .bsp-search-tabs{
+ display:flex!important;flex-wrap:wrap!important;gap:8px!important;
+ padding:14px 0!important;margin:0 0 16px!important;
+ background:transparent!important;border:0!important;box-shadow:none!important;
+ height:auto!important;min-height:0!important;overflow:visible!important;
+}
+body.bsp-idx #blackstone-idx-content .bsp-search-tab-shell{
+ background:transparent!important;border:0!important;box-shadow:none!important;
+ padding:0!important;margin:0!important;height:auto!important;min-width:0!important;
+}
+body.bsp-idx #blackstone-idx-content .bsp-search-tabs .bsp-search-tab{
+ box-sizing:border-box!important;margin:0!important;min-height:44px!important;
+ font-size:12px!important;font-weight:500!important;letter-spacing:.02em!important;
+ border-radius:8px!important;text-transform:none!important;
+}
+body.bsp-idx #blackstone-idx-content .bsp-search-tab.bsp-search-tab--active{
+ background:#D9B970!important;box-shadow:none!important;
+}
+body.bsp-idx #blackstone-idx-content :is(.select2-choices,.select2-choice,.select2-selection){
+ box-sizing:border-box!important;min-height:48px!important;border-radius:8px!important;
+ box-shadow:none!important;background-image:none!important;
+}
+body.bsp-idx #blackstone-idx-content .select2-container-multi .select2-choices .select2-search-field input{
+ background:transparent!important;border:0!important;border-radius:0!important;
+ box-shadow:none!important;min-height:0!important;padding:8px 12px!important;
+}
+body.bsp-idx #blackstone-idx-content :is(button[type=submit],input[type=submit]){
+ background:#D9B970!important;border-radius:8px!important;box-shadow:none!important;
+ font-weight:600!important;letter-spacing:.02em!important;
+}
+@media(max-width:600px){
+ body.bsp-idx #blackstone-idx-content .bsp-search-tabs{
+  display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;
+  width:100%!important;max-width:100%!important;
+ }
+ body.bsp-idx #blackstone-idx-content .bsp-search-tabs .bsp-search-tab{
+  display:flex!important;width:100%!important;padding:11px 8px!important;
+ }
+ body.bsp-idx #blackstone-idx-content .bsp-search-tab-shell{width:auto!important;float:none!important;}
+ body.bsp-idx #blackstone-idx-content label{font-size:14px!important;line-height:1.5!important;font-weight:500!important;}
+ body.bsp-idx #blackstone-idx-content :is(input:not([type=checkbox]):not([type=radio]):not([type=submit]),select,textarea){
+  box-sizing:border-box!important;font-family:var(--sans)!important;font-size:16px!important;
+  border-radius:8px!important;box-shadow:none!important;
+ }
+ body.bsp-idx #blackstone-idx-content .select2-container{width:100%!important;max-width:100%!important;}
+ body.bsp-idx #blackstone-idx-content .select2-container-multi .select2-choices .select2-search-field input{
+  border:0!important;border-radius:0!important;background:transparent!important;
+ }
+}
