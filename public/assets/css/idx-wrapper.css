@@ -261,3 +261,11 @@ body.bsp-idx > .bsp-chrome .hdr{
 }
 body.bsp-idx > .bsp-chrome .tick{z-index:1002!important;}
 body.bsp-idx #blackstone-idx-content{position:relative;z-index:0;isolation:isolate;}
+
+/* Dark lettering on the pale Similar listings heading. */
+body.bsp-idx #blackstone-idx-content .bsp-similar-listings-heading{
+ color:#141A2E!important;-webkit-text-fill-color:#141A2E!important;
+ background:#F7F4EE!important;font-family:var(--sans)!important;
+ font-size:14px!important;font-weight:600!important;line-height:1.5!important;
+ letter-spacing:.02em!important;text-transform:none!important;text-shadow:none!important;opacity:1!important;
+}

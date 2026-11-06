@@ -38,6 +38,9 @@
 (()=>{'use strict';
  const root=document.getElementById('blackstone-idx-content');if(!root)return;
  function styleActions(){
+  root.querySelectorAll('h1,h2,h3,h4,h5,h6,div,span').forEach(element=>{
+   if(element.children.length===0&&/^similar listings$/i.test(element.textContent.trim()))element.classList.add('bsp-similar-listings-heading');
+  });
   root.querySelectorAll('a,button').forEach(element=>{
    const label=element.textContent.replace(/\s+/g,' ').trim().toLowerCase();
    const cleanLabel=label.replace(/[♥♡❤💙\uFE0F]/gu,'').trim();
