@@ -82,15 +82,52 @@ body.bsp-idx:not(.bsp-native-map) #blackstone-idx-content input::placeholder,bod
 body.bsp-idx:not(.bsp-native-map) #blackstone-idx-content label{color:#EEF1F8!important}
 body.bsp-idx:not(.bsp-native-map) .select2-drop,body.bsp-idx:not(.bsp-native-map) .select2-results,body.bsp-idx:not(.bsp-native-map) .select2-result-label{background:#F7F4EE!important;color:#141A2E!important}
 body.bsp-idx:not(.bsp-native-map) .select2-highlighted .select2-result-label{background:#101a3a!important;color:#F4E2B0!important}
-body.bsp-idx #blackstone-idx-content :is([id*="detailsAddress" i],[id*="detailsPrice" i],h1,h2,h3){color:#F4E2B0!important}
+body.bsp-idx #blackstone-idx-content :is(h1,h2,h3){color:#F4E2B0!important}
+/* Details address/price sit on IDX's light panel — gold-on-beige was unreadable. */
+body.bsp-idx #blackstone-idx-content #IDX-detailsHeader{
+ background:#101a3a!important;border:1px solid rgba(217,185,112,.28)!important;border-radius:16px!important;
+ padding:16px 18px!important;margin:0 0 14px!important;
+}
+body.bsp-idx #blackstone-idx-content :is(#IDX-detailsAddress,#IDX-detailsAddressStreet,#IDX-detailsAddressRegion,[id*="detailsAddress" i]){
+ color:#EEF1F8!important;-webkit-text-fill-color:#EEF1F8!important;
+}
+body.bsp-idx #blackstone-idx-content #IDX-detailsAddressStreet,
+body.bsp-idx #blackstone-idx-content #IDX-detailsAddressStreet :is(span,a){
+ color:#F4E2B0!important;-webkit-text-fill-color:#F4E2B0!important;font-family:var(--serif)!important;font-weight:600!important;
+}
+body.bsp-idx #blackstone-idx-content :is(#IDX-detailsPrice,[id*="detailsPrice" i],.IDX-detailsPrice){
+ color:#F4E2B0!important;-webkit-text-fill-color:#F4E2B0!important;font-weight:700!important;
+}
 body.bsp-idx:not(.bsp-native-map) #blackstone-idx-content :is(.bsp-primary-search-action,button[type=submit],input[type=submit]){
- display:inline-flex;align-items:center;justify-content:center;min-height:42px;padding:9px 18px;border:1px solid #D9B970!important;border-radius:999px;background:linear-gradient(135deg,#F4E2B0,#D9B970)!important;color:#141A2E!important;font:600 .85rem/1.3 var(--sans);text-decoration:none!important;letter-spacing:.01em;
+ align-items:center;justify-content:center;min-height:42px;padding:9px 18px;border:1px solid #D9B970!important;border-radius:999px;background:linear-gradient(135deg,#F4E2B0,#D9B970)!important;color:#141A2E!important;font:600 .85rem/1.3 var(--sans);text-decoration:none!important;letter-spacing:.01em;
+}
+body.bsp-idx:not(.bsp-native-map) #blackstone-idx-content :is(.bsp-primary-search-action,button[type=submit],input[type=submit]):not(.IDX-hidden-mobile):not(.IDX-hidden-desktop){
+ display:inline-flex;
 }
 body.bsp-idx #blackstone-idx-content .bsp-secondary-search-action{
- display:inline-flex;align-items:center;justify-content:center;min-height:42px;padding:9px 16px;margin:3px;border:1px solid rgba(217,185,112,.55);border-radius:999px;background:#101a3a;color:#F4E2B0!important;font:500 .82rem/1.3 var(--sans);text-decoration:none!important;
+ align-items:center;justify-content:center;min-height:42px;padding:9px 16px;margin:3px;border:1px solid rgba(217,185,112,.55);border-radius:999px;background:#101a3a;color:#F4E2B0!important;font:500 .82rem/1.3 var(--sans);text-decoration:none!important;
+}
+body.bsp-idx #blackstone-idx-content .bsp-secondary-search-action:not(.IDX-hidden-mobile):not(.IDX-hidden-desktop){
+ display:inline-flex;
 }
 body.bsp-idx #blackstone-idx-content .bsp-primary-search-action{margin:3px}
 body.bsp-idx #blackstone-idx-content .bsp-primary-search-action:hover{background:#F4E2B0!important}
+/* Never let our button theme un-hide IDX responsive helpers. */
+@media (max-width:767px){
+ body.bsp-idx #blackstone-idx-content .IDX-hidden-mobile,
+ body.bsp-idx #blackstone-idx-content .IDX-hidden-mobile.bsp-primary-search-action,
+ body.bsp-idx #blackstone-idx-content .IDX-hidden-mobile.bsp-secondary-search-action,
+ body.bsp-idx #blackstone-idx-content .IDX-hidden-mobile.bsp-detail-action{
+  display:none!important;
+ }
+}
+@media (min-width:768px){
+ body.bsp-idx #blackstone-idx-content .IDX-hidden-desktop,
+ body.bsp-idx #blackstone-idx-content .IDX-hidden-desktop.bsp-primary-search-action,
+ body.bsp-idx #blackstone-idx-content .IDX-hidden-desktop.bsp-secondary-search-action{
+  display:none!important;
+ }
+}
 
 /* Native search navigation: champagne active tab, understated navy alternatives. */
 body.bsp-idx #blackstone-idx-content .bsp-search-tab{
@@ -326,4 +363,189 @@ body.bsp-idx:not(.bsp-native-map) #IDX-main select option{
 /* Labels above Advanced Search fields stay light-on-navy */
 body.bsp-idx:not(.bsp-native-map) #IDX-main :is(label,.IDX-label,.IDX-fieldLabel,legend){
   color:#EEF1F8!important;
+}
+
+
+/* SEARCH-CLEANUP-20261105-DETAILS: mobile details nav */
+/* Top details nav: one clean row on phones — Back + prev/next arrows only.
+   Modify/New stay available via IDX's mobile controls further down (not duplicated up top). */
+@media (max-width:767px){
+ body.bsp-idx #blackstone-idx-content #IDX-detailsTopNav{
+  display:flex!important;flex-wrap:nowrap!important;align-items:center!important;justify-content:space-between!important;
+  gap:10px!important;padding:8px 0 12px!important;margin:0 0 4px!important;min-height:0!important;height:auto!important;
+  background:transparent!important;border:0!important;
+ }
+ body.bsp-idx #blackstone-idx-content #IDX-detailsTopNav #IDX-searchControls{
+  display:flex!important;flex-wrap:nowrap!important;align-items:center!important;justify-content:flex-end!important;
+  gap:8px!important;margin:0!important;padding:0!important;flex:0 0 auto!important;
+ }
+ body.bsp-idx #blackstone-idx-content #IDX-backToResults{
+  display:inline-flex!important;align-items:center!important;justify-content:center!important;gap:6px!important;
+  flex:1 1 auto!important;max-width:calc(100% - 100px)!important;min-height:44px!important;margin:0!important;padding:10px 16px!important;
+  border-radius:999px!important;border:1px solid rgba(217,185,112,.55)!important;
+  background:#101a3a!important;color:#F4E2B0!important;font:600 .78rem/1.2 var(--sans)!important;
+  letter-spacing:.04em!important;text-transform:uppercase!important;text-decoration:none!important;white-space:nowrap!important;
+ }
+ body.bsp-idx #blackstone-idx-content #IDX-backToResults:hover{border-color:#F4E2B0!important;background:#17234b!important}
+ body.bsp-idx #blackstone-idx-content #IDX-backToResults .IDX-icon{filter:none!important;opacity:.95}
+ /* Prev / Next as matching circular controls — text stays for screen readers. */
+ body.bsp-idx #blackstone-idx-content :is(#IDX-detailsTopNavPrev,#IDX-detailsTopNavNext){
+  display:inline-flex!important;align-items:center!important;justify-content:center!important;
+  width:44px!important;height:44px!important;min-width:44px!important;min-height:44px!important;margin:0!important;padding:0!important;
+  border-radius:50%!important;border:1px solid rgba(217,185,112,.55)!important;
+  background:#101a3a!important;color:#F4E2B0!important;text-decoration:none!important;
+ }
+ body.bsp-idx #blackstone-idx-content :is(#IDX-detailsTopNavPrev,#IDX-detailsTopNavNext):hover{border-color:#F4E2B0!important;background:#17234b!important}
+ body.bsp-idx #blackstone-idx-content :is(#IDX-detailsTopNavPrev,#IDX-detailsTopNavNext) .IDX-icon{margin:0!important;width:16px!important;height:16px!important}
+ /* Bottom mobile Modify / New: tidy equal stack, outline style (not a second gold pile). */
+ body.bsp-idx #blackstone-idx-content :is(#IDX-detailsMobileModifySearch,#IDX-detailsMobileNewSearch){
+  display:flex!important;width:100%!important;max-width:100%!important;box-sizing:border-box!important;
+  min-height:46px!important;margin:6px 0 0!important;padding:12px 16px!important;
+  border-radius:999px!important;border:1px solid rgba(217,185,112,.55)!important;
+  background:#101a3a!important;background-image:none!important;color:#F4E2B0!important;
+  font:600 .85rem/1.3 var(--sans)!important;letter-spacing:.02em!important;text-decoration:none!important;
+ }
+ body.bsp-idx #blackstone-idx-content #IDX-detailsMobileNewSearch{
+  background:linear-gradient(135deg,#F4E2B0,#D9B970)!important;color:#141A2E!important;border-color:#D9B970!important;
+ }
+ body.bsp-idx #blackstone-idx-content #IDX-detailsContactLinks{
+  display:flex!important;flex-direction:column!important;gap:8px!important;padding:8px 0 4px!important;
+ }
+}
+
+/* Desktop details top nav: single horizontal row, consistent pills. */
+@media (min-width:768px){
+ body.bsp-idx #blackstone-idx-content #IDX-detailsTopNav{
+  display:flex!important;flex-wrap:wrap!important;align-items:center!important;justify-content:space-between!important;
+  gap:10px 14px!important;padding:6px 0 14px!important;
+ }
+ body.bsp-idx #blackstone-idx-content #IDX-detailsTopNav #IDX-searchControls{
+  display:flex!important;flex-wrap:wrap!important;align-items:center!important;gap:8px!important;margin:0!important;
+ }
+ body.bsp-idx #blackstone-idx-content #IDX-backToResults{
+  display:inline-flex!important;align-items:center!important;gap:8px!important;min-height:42px!important;padding:9px 16px!important;
+  border-radius:999px!important;border:1px solid rgba(217,185,112,.55)!important;background:#101a3a!important;color:#F4E2B0!important;
+  font:600 .82rem/1.2 var(--sans)!important;text-decoration:none!important;
+ }
+}
+
+
+/* SEARCH-CLEANUP-20261105-BUTTONS: classy navy/gold for all IDX actions */
+/* Base IDX buttons → Blackstone pills (pre-IDX look). Never un-hide responsive helpers. */
+body.bsp-idx #blackstone-idx-content :is(a.IDX-btn, button.IDX-btn, .IDX-btn){
+  box-sizing:border-box!important;
+  font-family:var(--sans)!important;
+  font-weight:600!important;
+  letter-spacing:.02em!important;
+  text-transform:none!important;
+  text-decoration:none!important;
+  border-radius:999px!important;
+  box-shadow:none!important;
+  white-space:nowrap!important;
+  transition:background .18s ease,border-color .18s ease,color .18s ease!important;
+}
+body.bsp-idx #blackstone-idx-content :is(a.IDX-btn, button.IDX-btn, .IDX-btn):not(.IDX-hidden-mobile):not(.IDX-hidden-desktop){
+  display:inline-flex!important;
+  align-items:center!important;
+  justify-content:center!important;
+  gap:8px!important;
+}
+
+/* Outline navy (default / link / outline) */
+body.bsp-idx #blackstone-idx-content :is(
+  .IDX-btn__link, .IDX-btn-link, .IDX-btn__outline, .IDX-btn-default,
+  a.IDX-btn:not(.IDX-btn-primary):not(.bsp-primary-search-action):not(.bsp-search-tab--active):not(#IDX-detailsMobileNewSearch)
+){
+  min-height:44px!important;
+  padding:10px 16px!important;
+  border:1px solid rgba(217,185,112,.55)!important;
+  background:#101a3a!important;
+  background-image:none!important;
+  color:#F4E2B0!important;
+}
+body.bsp-idx #blackstone-idx-content :is(.IDX-btn__link, .IDX-btn-link, .IDX-btn__outline, .IDX-btn-default):hover{
+  border-color:#F4E2B0!important;background:#17234b!important;color:#FFF7E5!important;
+}
+
+/* Gold primary (Search, Apply, New Search accent) */
+body.bsp-idx #blackstone-idx-content :is(
+  .IDX-btn-primary, .IDX-btn__PL.IDX-btn-primary, .bsp-primary-search-action,
+  #IDX-detailsMobileNewSearch, button[type=submit].IDX-btn, input[type=submit].IDX-btn
+):not(.IDX-hidden-mobile):not(.IDX-hidden-desktop):not(.IDX-dropdown-toggle){
+  min-height:46px!important;
+  padding:11px 20px!important;
+  border:1px solid #D9B970!important;
+  background:linear-gradient(135deg,#F4E2B0,#D9B970)!important;
+  color:#141A2E!important;
+}
+body.bsp-idx #blackstone-idx-content :is(.IDX-btn-primary, .bsp-primary-search-action):not(.IDX-hidden-mobile):hover{
+  background:#F4E2B0!important;color:#141A2E!important;
+}
+
+/* Filter dropdown toggles on results — outline, not solid gold stacks */
+body.bsp-idx #blackstone-idx-content :is(.IDX-dropdown-toggle, .IDX-btn-primary.IDX-dropdown-toggle){
+  background:#101a3a!important;background-image:none!important;color:#F4E2B0!important;
+  border:1px solid rgba(217,185,112,.55)!important;
+}
+
+/* Results toolbar (Filter / Save / New / Modify / Show Map): one wrapping row */
+body.bsp-idx #blackstone-idx-content :is(
+  .idx-results-refinement, .IDX-resultsHeader, .IDX-resultsControls,
+  [class*="results-refinement" i], [class*="resultsHeader" i]
+){
+  display:flex!important;flex-wrap:wrap!important;align-items:center!important;gap:8px!important;
+}
+body.bsp-idx #blackstone-idx-content :is(
+  .idx-results-refinement .IDX-btn, .IDX-resultsHeader .IDX-btn, .IDX-resultsControls .IDX-btn,
+  .idx-results-refinement__toggle
+){
+  flex:0 1 auto!important;min-height:42px!important;padding:9px 14px!important;margin:0!important;
+  font-size:.78rem!important;letter-spacing:.03em!important;
+}
+
+/* Search tabs already themed — keep equal 2×2 on phones, single row on desktop */
+@media (max-width:767px){
+  body.bsp-idx #blackstone-idx-content .bsp-search-tabs{
+    display:grid!important;grid-template-columns:1fr 1fr!important;gap:8px!important;
+    width:100%!important;padding:10px 0 14px!important;margin:0 0 12px!important;
+  }
+  body.bsp-idx #blackstone-idx-content .bsp-search-tab-shell{width:100%!important;margin:0!important;float:none!important}
+  body.bsp-idx #blackstone-idx-content .bsp-search-tabs .bsp-search-tab{
+    width:100%!important;min-height:46px!important;margin:0!important;font-size:.78rem!important;
+  }
+  /* Results filter drawers: full-width tidy stack */
+  body.bsp-idx #blackstone-idx-content :is(.IDX-btn-primary.IDX-btn__PL, .IDX-dropdown-toggle){
+    width:100%!important;max-width:100%!important;justify-content:space-between!important;
+  }
+  /* Details header actions (Save / Print) side-by-side */
+  body.bsp-idx #blackstone-idx-content #IDX-detailsHeaderActions .IDX-inline-buttons,
+  body.bsp-idx #blackstone-idx-content #IDX-detailsHeaderActions{
+    display:flex!important;flex-wrap:wrap!important;gap:8px!important;width:100%!important;
+  }
+  body.bsp-idx #blackstone-idx-content #IDX-detailsHeaderActions .IDX-btn{
+    flex:1 1 calc(50% - 8px)!important;min-width:140px!important;margin:0!important;
+  }
+  /* Description links — compact text links, not huge pills fighting each other */
+  body.bsp-idx #blackstone-idx-content #IDX-detailsDescriptionActions{
+    display:flex!important;flex-wrap:wrap!important;gap:8px!important;align-items:center!important;
+  }
+  body.bsp-idx #blackstone-idx-content #IDX-detailsDescriptionActions .IDX-btn__link{
+    width:auto!important;min-height:40px!important;padding:8px 14px!important;font-size:.8rem!important;
+  }
+}
+
+@media (min-width:768px){
+  body.bsp-idx #blackstone-idx-content .bsp-search-tabs{
+    display:flex!important;flex-wrap:wrap!important;gap:8px!important;
+  }
+  body.bsp-idx #blackstone-idx-content .bsp-search-tabs .bsp-search-tab{width:auto!important}
+}
+
+/* Inline-button rows from IDX: always flex with gap, never absolute pile-ups */
+body.bsp-idx #blackstone-idx-content :is(.IDX-inline-buttons, .IDX-nav.IDX-inline-buttons){
+  display:flex!important;flex-wrap:wrap!important;align-items:center!important;gap:8px!important;
+  position:static!important;height:auto!important;min-height:0!important;
+}
+body.bsp-idx #blackstone-idx-content .IDX-inline-buttons > :is(a,button,.IDX-btn){
+  position:static!important;float:none!important;
 }
