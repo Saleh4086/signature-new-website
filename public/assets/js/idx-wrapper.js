@@ -1,5 +1,6 @@
 /* Header interactions only; leave IDX search and forms under IDX control. */
 (()=>{'use strict';
+ document.body.classList.toggle('bsp-native-map',location.pathname.includes('/idx/map/'));
  const menu=document.querySelector('.bsp-chrome .menu-btn');
  if(menu)menu.addEventListener('click',()=>{const on=document.body.classList.toggle('nav-open');menu.setAttribute('aria-expanded',String(on));});
  document.querySelectorAll('.bsp-chrome .nav a').forEach(link=>link.addEventListener('click',()=>{document.body.classList.remove('nav-open');if(menu)menu.setAttribute('aria-expanded','false');}));
