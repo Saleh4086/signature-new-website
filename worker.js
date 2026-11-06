@@ -39,6 +39,36 @@ const JSON_HEADERS = {
   "Access-Control-Allow-Methods": "GET, POST, OPTIONS"
 };
 
+/** Origins allowed to POST website / IDX leads into /api/leads (then Brokerage OS mirror). */
+const LEAD_CORS_ORIGINS = new Set([
+  "https://blackstonesignatureproperty.com",
+  "https://www.blackstonesignatureproperty.com",
+  "https://blackstonesignatureproperty.idxbroker.com",
+  "https://blackstone-preview.gharibyar61.workers.dev"
+]);
+
+function leadCorsHeaders(request) {
+  const origin = String(request.headers.get("Origin") || "");
+  const self = new URL(request.url).origin;
+  if (origin && (LEAD_CORS_ORIGINS.has(origin) || origin === self)) {
+    return {
+      "Access-Control-Allow-Origin": origin,
+      "Access-Control-Allow-Methods": "POST, OPTIONS",
+      "Access-Control-Allow-Headers": "Content-Type",
+      Vary: "Origin"
+    };
+  }
+  return {};
+}
+
+function isAllowedLeadOrigin(request) {
+  const origin = request.headers.get("Origin");
+  if (!origin) return false; // browser POSTs from IDX always send Origin
+  const self = new URL(request.url).origin;
+  return LEAD_CORS_ORIGINS.has(origin) || origin === self;
+}
+
+
 function json(data, status = 200, extraHeaders = {}) {
   return new Response(JSON.stringify(data), {
     status,
@@ -624,6 +654,7 @@ function normalizeLeadType(value, pathname = "") {
   if (raw.includes("invest") || path.includes("investment")) return "investor";
   if (raw.includes("rent") || path.includes("apply")) return "rental";
   if (raw.includes("buy") || path.includes("buyer") || path.includes("search")) return "buyer";
+  if (raw.includes("idx")) return "buyer";
   return "contact";
 }
 
@@ -674,7 +705,7 @@ function buildLeadPayload(input, requestUrl) {
   const notes = [message, details].filter(Boolean).join("\n\n").slice(0, 7000);
 
   const aiSummary = [
-    `${leadType.replace(/_/g, " ")} website inquiry`,
+    source.toLowerCase().includes("idx") ? `${leadType.replace(/_/g, " ")} IDX sign-up` : `${leadType.replace(/_/g, " ")} website inquiry`,
     propertyAddress ? `Property: ${propertyAddress}` : "",
     city ? `City: ${city}` : "",
     timeline ? `Timeline: ${timeline}` : "",
@@ -828,26 +859,27 @@ async function mirrorWebsiteLead(payload, savedLead, env) {
 }
 
 async function handleLeadCapture(request, env) {
+  const cors = leadCorsHeaders(request);
   if (request.method === "OPTIONS") {
-    return new Response(null, { status: 204, headers: JSON_HEADERS });
+    return new Response(null, { status: 204, headers: { ...JSON_HEADERS, ...cors } });
   }
 
   if (request.method !== "POST") {
-    return json({ error: "Use POST for this endpoint." }, 405);
+    return json({ error: "Use POST for this endpoint." }, 405, cors);
   }
 
   let input;
   try {
     input = await request.json();
   } catch {
-    return json({ error: "Invalid lead submission." }, 400);
+    return json({ error: "Invalid lead submission." }, 400, cors);
   }
 
-  if(input?.fields?.website_url) return json({error:"Invalid submission."},400);
+  if(input?.fields?.website_url) return json({error:"Invalid submission."},400,cors);
     const payload = buildLeadPayload(input, request.url);
 
   if (!payload.email && !payload.phone) {
-    return json({ error: "Please provide an email address or phone number." }, 400);
+    return json({ error: "Please provide an email address or phone number." }, 400, cors);
   }
 
   try {
@@ -868,10 +900,10 @@ async function handleLeadCapture(request, env) {
       lead_id: savedLead?.id || null,
       ...(brokerageMirror.enabled ? {brokerage_os_received: brokerageMirror.received} : {}),
       ...(payload.lead_type === "tenant_repair" ? { repair_os_received: Boolean(repair_os?.ok) } : {})
-    });
+    }, 200, cors);
   } catch (error) {
     console.error("CRM lead capture error:", error);
-    return json({ error: "We could not submit your request. Please call (925) 722-5144." }, 502);
+    return json({ error: "We could not submit your request. Please call (925) 722-5144." }, 502, cors);
   }
 }
 
@@ -912,7 +944,7 @@ async function guardApi(request,env){
   if(route==='/api/chat'&&request.method!=='POST'&&(!['GET','HEAD','OPTIONS'].includes(request.method)||new URL(request.url).searchParams.has('message')))return json({error:'Send chat messages using POST.'},405);
   if(env?.OFFLINE_PREVIEW==='true')return json({error:'Offline preview: requests are not sent.'},503);
   if(!writes)return null;
-  if(![new URL(request.url).origin,'https://blackstone-preview.gharibyar61.workers.dev'].includes(request.headers.get('Origin')))return json({error:'Request origin is not allowed.'},403);
+  if(!isAllowedLeadOrigin(request))return json({error:'Request origin is not allowed.'},403,leadCorsHeaders(request));
   if(request.headers.get('Content-Type')?.split(';')[0].trim()!=='application/json')return json({error:'Use application/json.'},415);
   const limit=route==='/api/chat'?131072:32768;
   if(Number(request.headers.get('Content-Length'))>limit)return json({error:'Request is too large.'},413);

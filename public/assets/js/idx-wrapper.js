@@ -192,3 +192,169 @@
  /* Late IDX ajax / map popups */
  setInterval(schedule, 1500);
 })();
+
+/* IDX signup → Brokerage OS via /api/leads (IDX vault still saves first). */
+(()=>{'use strict';
+ const LEAD_API='https://blackstonesignatureproperty.com/api/leads';
+ const sent=new Set();
+ let lastFields=null;
+
+ function readSignupFields(form){
+  if(!form) return null;
+  const get=name=>{
+   const el=form.querySelector('[name="'+name+'"]');
+   return el ? String(el.value||'').trim() : '';
+  };
+  const first=get('firstName'), last=get('lastName');
+  const name=[first,last].filter(Boolean).join(' ').trim();
+  const email=get('email');
+  const phone=get('phone');
+  if(!email && !phone) return null;
+  return {
+   name: name || 'IDX Registrant',
+   email,
+   phone,
+   firstName:first,
+   lastName:last,
+   listingID:get('listingID'),
+   idxID:get('idxID'),
+   leadCapturedPage:get('leadCapturedPage') || location.href
+  };
+ }
+
+ function fingerprint(f){
+  return [String(f.email||'').toLowerCase(), String(f.phone||'').replace(/\D/g,''), String(f.name||'').toLowerCase()].join('|');
+ }
+
+ function forwardToCrm(fields, meta){
+  if(!fields) return;
+  const fp=fingerprint(fields);
+  if(!fp || fp==='||') return;
+  try{
+   const key='bsp-idx-lead:'+fp;
+   if(sessionStorage.getItem(key)==='1') return;
+   if(sent.has(fp)) return;
+   sent.add(fp);
+   sessionStorage.setItem(key,'1');
+  }catch(_){ if(sent.has(fp)) return; sent.add(fp); }
+
+  const listingBit=fields.listingID ? (' Listing '+fields.listingID) : '';
+  const body={
+   name: fields.name,
+   email: fields.email || '',
+   phone: fields.phone || '',
+   lead_type: 'buyer',
+   message: 'IDX Broker registration / sign-up.'+listingBit,
+   page: location.pathname + location.search,
+   source: 'idx-signup',
+   consent_to_contact: true,
+   city: '',
+   property_address: '',
+   motivation: meta || 'IDX sign-up popup'
+  };
+  // Fire-and-forget: never block or undo IDX's own usersignup.php success.
+  fetch(LEAD_API,{
+   method:'POST',
+   mode:'cors',
+   credentials:'omit',
+   headers:{'Content-Type':'application/json','Accept':'application/json'},
+   body:JSON.stringify(body)
+  }).catch(()=>{});
+ }
+
+ function looksSuccessful(xhr, settings){
+  const url=String((settings&&settings.url)||'');
+  if(!/usersignup\.php/i.test(url)) return false;
+  if(xhr && xhr.status && xhr.status>=400) return false;
+  const raw=xhr && (xhr.responseText||xhr.response||'');
+  if(!raw) return true; // treat 2xx empty as ok; IDX usually returns JSON
+  try{
+   const data=typeof raw==='string' ? JSON.parse(raw) : raw;
+   if(data && typeof data==='object'){
+    const st=String(data.status||data.result||data.message||'').toLowerCase();
+    if(st.includes('fail')||st.includes('error')||data.success===false||data.ok===false) return false;
+    if(data.status==='success'||data.success===true||data.ok===true||st.includes('success')||st.includes('thank')) return true;
+    // Unknown JSON shape with 2xx — still forward (IDX already accepted the lead).
+    return !data.error;
+   }
+  }catch(_){
+   const t=String(raw).toLowerCase();
+   if(/error|fail|invalid|already/.test(t) && !/success|thank|welcome/.test(t)) return false;
+   if(/success|thank|welcome|registered|logged/.test(t)) return true;
+  }
+  return xhr && xhr.status>=200 && xhr.status<300;
+ }
+
+ function hookJquery(){
+  const $=window.idx || window.jQuery || window.$;
+  if(!$ || !$.fn) return false;
+  $(document).on('submit','#IDX-signupForm',function(){
+   lastFields=readSignupFields(this);
+  });
+  $(document).ajaxComplete(function(_ev, xhr, settings){
+   if(!looksSuccessful(xhr, settings)) return;
+   const form=document.getElementById('IDX-signupForm');
+   const fields=readSignupFields(form) || lastFields;
+   forwardToCrm(fields, 'idx ajaxComplete usersignup');
+  });
+  return true;
+ }
+
+ function hookFetch(){
+  if(typeof window.fetch!=='function' || window.fetch.__bspIdxLead) return;
+  const orig=window.fetch.bind(window);
+  function wrapped(input, init){
+   const url=typeof input==='string' ? input : (input && input.url) || '';
+   const isSignup=/usersignup\.php/i.test(url);
+   if(isSignup){
+    const form=document.getElementById('IDX-signupForm');
+    lastFields=readSignupFields(form) || lastFields;
+   }
+   return orig(input, init).then(res=>{
+    if(isSignup && res && res.ok){
+     try{
+      const clone=res.clone();
+      clone.text().then(text=>{
+       const fake={status:res.status, responseText:text};
+       if(looksSuccessful(fake,{url})) forwardToCrm(lastFields || readSignupFields(document.getElementById('IDX-signupForm')), 'idx fetch usersignup');
+      }).catch(()=>{});
+     }catch(_){}
+    }
+    return res;
+   });
+  }
+  wrapped.__bspIdxLead=true;
+  window.fetch=wrapped;
+ }
+
+ function hookXHR(){
+  if(XMLHttpRequest.prototype.__bspIdxLead) return;
+  const open=XMLHttpRequest.prototype.open;
+  const send=XMLHttpRequest.prototype.send;
+  XMLHttpRequest.prototype.open=function(method,url){
+   this.__bspUrl=url;
+   return open.apply(this, arguments);
+  };
+  XMLHttpRequest.prototype.send=function(body){
+   if(/usersignup\.php/i.test(String(this.__bspUrl||''))){
+    lastFields=readSignupFields(document.getElementById('IDX-signupForm')) || lastFields;
+    this.addEventListener('load',()=>{
+     if(looksSuccessful(this,{url:this.__bspUrl})) forwardToCrm(lastFields, 'idx xhr usersignup');
+    });
+   }
+   return send.apply(this, arguments);
+  };
+  XMLHttpRequest.prototype.__bspIdxLead=true;
+ }
+
+ function boot(){
+  hookXHR();
+  hookFetch();
+  if(!hookJquery()){
+   let n=0;
+   const t=setInterval(()=>{ if(hookJquery()||++n>40) clearInterval(t); }, 250);
+  }
+ }
+ boot();
+ document.addEventListener('DOMContentLoaded', boot);
+})();
