@@ -576,3 +576,42 @@ body.bsp-idx #blackstone-idx-content .IDX-inline-buttons > :is(a,button,.IDX-btn
   border-top:1px solid rgba(217,185,112,.25)!important;margin:0!important;
  }
 }
+
+/* East Bay go-live: hide test lead welcome + dedupe map toolbars */
+/* Lead "Welcome, … (Not you?)" / TEST ONLY saved-search chrome — never show on live */
+body.bsp-idx :is(
+  #IDX-leadLogin, #IDX-loginWidget, #IDX-welcome, #IDX-welcomeMessage,
+  .IDX-welcome, .IDX-welcomeMessage, .IDX-memberBar, .IDX-accountBar,
+  #IDX-accountBar, #IDX-memberNav, .IDX-loggedInMessage, #IDX-loginStatus
+),
+body.bsp-idx .bsp-hide-lead-welcome{
+  display:none!important;visibility:hidden!important;height:0!important;overflow:hidden!important;margin:0!important;padding:0!important;border:0!important;
+}
+
+/* Desktop: bottom mobile results toolbar duplicates header New/Modify/Save/Map */
+@media (min-width:768px){
+  body.bsp-idx #blackstone-idx-content #idx-results-mobile-control,
+  body.bsp-idx #blackstone-idx-content .idx-results__mobile-menu{
+    display:none!important;
+  }
+  /* IDX marks these groups as mobile-only */
+  body.bsp-idx #blackstone-idx-content .IDX-hide-filters--desktop{
+    display:none!important;
+  }
+}
+/* Phone: keep bottom toolbar; hide the header map toggle to avoid two Map buttons */
+@media (max-width:767px){
+  body.bsp-idx #blackstone-idx-content .idx-results__map-toggle,
+  body.bsp-idx #blackstone-idx-content #idx-results-map-toggle{
+    display:none!important;
+  }
+  body.bsp-idx #blackstone-idx-content #idx-results-mobile-control,
+  body.bsp-idx #blackstone-idx-content .idx-results__mobile-menu{
+    display:flex!important;flex-wrap:wrap!important;gap:8px!important;align-items:center!important;
+    justify-content:space-around!important;width:100%!important;
+    padding:10px 8px calc(10px + env(safe-area-inset-bottom,0px))!important;
+    position:sticky!important;bottom:0!important;z-index:25!important;
+    background:rgba(10,16,36,.96)!important;backdrop-filter:blur(10px);
+    border-top:1px solid rgba(217,185,112,.25)!important;
+  }
+}

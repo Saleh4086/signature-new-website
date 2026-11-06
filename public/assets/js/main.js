@@ -151,21 +151,90 @@
 
   // home search box → map search page
   $$('.chip[data-q]').forEach(c=>c.addEventListener('click',()=>{const i=$('#hq');if(i){i.value=c.dataset.q;$$('.chip[data-q]').forEach(x=>x.classList.toggle('on',x===c))}}));
-  /* Home hero: city chips + Search open live MLS (not a second local map). */
+  /* Home hero: city chips + Search open live MLS scoped to East Bay zips.
+     IDX csv_city alone is ignored on this account and returns statewide/LA luxury
+     results; pairing csv_city with csv_zipcode keeps Discovery Bay etc. local. */
   const MLS_RESULTS='https://blackstonesignatureproperty.idxbroker.com/idx/results/listings';
   const MLS_MAP='https://blackstonesignatureproperty.idxbroker.com/idx/map/mapsearch';
+  const MLS_ADV='https://blackstonesignatureproperty.idxbroker.com/idx/search/advanced';
+  const EAST_BAY_CITIES={
+    'discovery bay':'94505',
+    'brentwood':'94513',
+    'oakley':'94561',
+    'antioch':'94509,94531',
+    'concord':'94518,94519,94520,94521',
+    'walnut creek':'94595,94596,94597,94598',
+    'danville':'94506,94526',
+    'pittsburg':'94565',
+    'byron':'94514',
+    'bay point':'94565',
+    'oakland':'94601,94602,94605,94606,94607,94608,94609,94610,94611,94612,94618,94619',
+    'livermore':'94550,94551',
+    'pleasanton':'94566,94588',
+    'san ramon':'94582,94583',
+    'lafayette':'94549',
+    'orinda':'94563',
+    'martinez':'94553',
+    'clayton':'94517',
+    'alamo':'94507',
+    'moraga':'94556'
+  };
+  const EAST_BAY_ALIASES={
+    discovbay:'discovery bay', discobay:'discovery bay', discoverybay:'discovery bay',
+    discovery:'discovery bay', dbay:'discovery bay', 'd bay':'discovery bay',
+    walnutcreek:'walnut creek', wc:'walnut creek',
+    baypoint:'bay point', sanramon:'san ramon'
+  };
+  function normCityKey(raw){
+    return String(raw||'').toLowerCase().replace(/[^a-z0-9\s]/g,' ').replace(/\s+/g,' ').trim();
+  }
+  function compactKey(raw){ return normCityKey(raw).replace(/\s+/g,''); }
+  function resolveEastBay(raw){
+    const key=normCityKey(raw);
+    if(!key) return null;
+    if(EAST_BAY_CITIES[key]) return {city:key.replace(/\b\w/g,c=>c.toUpperCase()).replace(/\bBay\b/,'Bay').replace(/\bCreek\b/,'Creek').replace(/\bPoint\b/,'Point'), zips:EAST_BAY_CITIES[key], canon:key};
+    const alias=EAST_BAY_ALIASES[compactKey(raw)]||EAST_BAY_ALIASES[key];
+    if(alias && EAST_BAY_CITIES[alias]){
+      const pretty=alias.split(' ').map(w=>w.charAt(0).toUpperCase()+w.slice(1)).join(' ');
+      return {city:pretty, zips:EAST_BAY_CITIES[alias], canon:alias};
+    }
+    // Prefix match: "discov" → Discovery Bay
+    const compact=compactKey(raw);
+    if(compact.length>=4){
+      for(const canon of Object.keys(EAST_BAY_CITIES)){
+        if(compactKey(canon).startsWith(compact) || compact.startsWith(compactKey(canon))){
+          const pretty=canon.split(' ').map(w=>w.charAt(0).toUpperCase()+w.slice(1)).join(' ');
+          return {city:pretty, zips:EAST_BAY_CITIES[canon], canon};
+        }
+      }
+    }
+    return null;
+  }
+  function mlsCityUrl(city, zips){
+    let u=MLS_RESULTS+'?csv_city='+encodeURIComponent(city);
+    if(zips) u+='&csv_zipcode='+encodeURIComponent(zips);
+    return u;
+  }
+  function goMlsCity(raw){
+    const hit=resolveEastBay(raw);
+    if(hit){ location.href=mlsCityUrl(hit.city, hit.zips); return; }
+    const city=String(raw||'').trim();
+    if(!city){ location.href=MLS_MAP; return; }
+    // Unknown free-text: do NOT post bare csv_city (returns LA). Use Advanced Search.
+    location.href=MLS_ADV;
+  }
   $$('.chip[data-mls-city]').forEach(c=>c.addEventListener('click',()=>{
     const city=(c.dataset.mlsCity||'').trim();
     $$('.chip[data-mls-city]').forEach(x=>x.classList.toggle('on',x===c));
     const i=$('#hq'); if(i) i.value=city;
-    location.href=city? (MLS_RESULTS+'?csv_city='+encodeURIComponent(city)) : MLS_MAP;
+    goMlsCity(city);
   }));
   const heroMls=$('#hero-mls-search');
   if(heroMls){
     heroMls.addEventListener('submit',e=>{
+      e.preventDefault();
       const i=heroMls.querySelector('#hq,input[name="csv_city"]');
-      const city=((i&&i.value)||'').trim();
-      if(!city){ e.preventDefault(); location.href=MLS_MAP; }
+      goMlsCity(((i&&i.value)||'').trim());
     });
   }
 

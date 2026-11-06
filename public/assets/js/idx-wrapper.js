@@ -97,27 +97,98 @@
  if(typeof MutationObserver==='function')new MutationObserver(styleActions).observe(root,{childList:true,subtree:true});
 })();
 
-/* Normalize IDX agent phone to Blackstone (925) 722-5144 */
+/* Normalize ALL visible IDX phones 925-917-5595 → (925) 722-5144 (CRM number). */
 (()=>{'use strict';
  const GOOD_DISPLAY='(925) 722-5144';
  const GOOD_TEL='+19257225144';
- const BAD=/9\s*2\s*5\s*[-.]?\s*9\s*1\s*7\s*[-.]?\s*5\s*5\s*9\s*5/gi;
- function fixNode(node){
-  if(node.nodeType===Node.TEXT_NODE){
-   if(BAD.test(node.nodeValue||'')){node.nodeValue=(node.nodeValue||'').replace(BAD,GOOD_DISPLAY);BAD.lastIndex=0;}
-   return;
+ const GOOD_DIGITS='9257225144';
+ const BAD_DIGITS='9259175595';
+ /* Match every common formatting of the bad number */
+ const BAD_RE=/\(?\s*9\s*2\s*5\s*\)?\s*[-./\s]*\s*9\s*1\s*7\s*[-./\s]*\s*5\s*5\s*9\s*5/gi;
+ const WELCOME_RE=/TEST\s*ONLY|Not you\?|Welcome,\s*.{0,100}Saved Search/i;
+ let scheduled=false;
+
+ function digits(s){return String(s||'').replace(/\D/g,'');}
+ function isBadPhone(s){
+  const d=digits(s);
+  return d===BAD_DIGITS || d.endsWith(BAD_DIGITS) || d.includes(BAD_DIGITS);
+ }
+ function fixHref(el){
+  const href=el.getAttribute('href')||'';
+  if(!/^tel:/i.test(href)) return;
+  if(isBadPhone(href)){
+   el.setAttribute('href','tel:'+GOOD_TEL);
+   const t=(el.textContent||'').trim();
+   if(!t || isBadPhone(t) || /917/.test(t)) el.textContent=GOOD_DISPLAY;
   }
-  if(node.nodeType!==Node.ELEMENT_NODE)return;
-  if(node.matches&&node.matches('a[href^="tel:"]')){
-   const href=node.getAttribute('href')||'';
-   const d=href.replace(/\D/g,'');if(d.includes('9259175595')||d.endsWith('9175595')){node.setAttribute('href','tel:'+GOOD_TEL);if(/9\s*2\s*5|917/.test(node.textContent||''))node.textContent=GOOD_DISPLAY;}
+ }
+ function fixTextNode(node){
+  const v=node.nodeValue||'';
+  if(!v || !/9\s*1\s*7|917/.test(v)) return;
+  if(BAD_RE.test(v)){
+   BAD_RE.lastIndex=0;
+   node.nodeValue=v.replace(BAD_RE,GOOD_DISPLAY);
+  }else{
+   BAD_RE.lastIndex=0;
   }
-  node.childNodes&&node.childNodes.forEach(fixNode);
+ }
+ function fixAttrs(el){
+  for(const attr of ['title','aria-label','data-phone','data-agent-phone','value','placeholder','content']){
+   if(!el.hasAttribute?.(attr)) continue;
+   const v=el.getAttribute(attr);
+   if(v && isBadPhone(v)){
+    el.setAttribute(attr, attr.startsWith('data') || attr==='value' ? GOOD_TEL : GOOD_DISPLAY);
+   }else if(v && BAD_RE.test(v)){
+    BAD_RE.lastIndex=0;
+    el.setAttribute(attr, v.replace(BAD_RE, GOOD_DISPLAY));
+   }else{
+    BAD_RE.lastIndex=0;
+   }
+ }
+ }
+ function scrubWelcome(el){
+  if(el.nodeType!==1) return;
+  if(el.classList?.contains('bsp-hide-lead-welcome')) return;
+  const t=(el.textContent||'').replace(/\s+/g,' ').trim();
+  if(!t || t.length>200) return;
+  if(WELCOME_RE.test(t) || (/Welcome,/i.test(t) && /Not you/i.test(t))){
+   el.classList.add('bsp-hide-lead-welcome');
+   el.setAttribute('hidden','');
+   el.style.setProperty('display','none','important');
+  }
+ }
+ function walk(node){
+  if(!node) return;
+  if(node.nodeType===Node.TEXT_NODE){ fixTextNode(node); return; }
+  if(node.nodeType!==Node.ELEMENT_NODE) return;
+  const tag=(node.tagName||'').toLowerCase();
+  if(tag==='script'||tag==='style'||tag==='noscript') return;
+  if(node.matches?.('a[href^="tel:"],a[href^="TEL:"]')) fixHref(node);
+  fixAttrs(node);
+  scrubWelcome(node);
+  const kids=node.childNodes;
+  for(let i=0;i<kids.length;i++) walk(kids[i]);
  }
  function run(){
-  const roots=[document.getElementById('blackstone-idx-content'),document.body].filter(Boolean);
-  roots.forEach(fixNode);
+  walk(document.body||document.documentElement);
+  /* Also force agent phone anchors IDX uses */
+  document.querySelectorAll('a.IDX-contact__agentPhone, a[href*="917"], [class*="agentPhone" i], #IDX-contactPhone2').forEach(el=>{
+   if(el.matches?.('a[href^="tel:"]')) fixHref(el);
+   if(isBadPhone(el.textContent||'')) el.textContent=GOOD_DISPLAY;
+   walk(el);
+  });
+ }
+ function schedule(){
+  if(scheduled) return;
+  scheduled=true;
+  requestAnimationFrame(()=>{ scheduled=false; try{run();}catch(e){} });
  }
  run();
- new MutationObserver(run).observe(document.documentElement,{childList:true,subtree:true,characterData:true});
+ document.addEventListener('DOMContentLoaded', schedule);
+ window.addEventListener('load', schedule);
+ if(typeof MutationObserver==='function'){
+  new MutationObserver(schedule).observe(document.documentElement,{childList:true,subtree:true,characterData:true,attributes:true,attributeFilter:['href','title','aria-label','value']});
+ }
+ /* Late IDX ajax / map popups */
+ setInterval(schedule, 1500);
 })();
