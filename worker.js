@@ -1358,7 +1358,10 @@ function staticCacheControl(pathname,status){
   if(status!==200&&status!==304)return null;
   if(pathname.startsWith('/api/'))return null;
   if(LONG_CACHE_EXT.test(pathname))return 'public, max-age=2592000, stale-while-revalidate=86400';
-  if(MEDIUM_CACHE_EXT.test(pathname))return 'public, max-age=86400, stale-while-revalidate=604800';
+  if(/\/(?:main|idx-wrapper)[^/]*\.(?:js|css)$/i.test(pathname)){
+    return 'public, max-age=60, stale-while-revalidate=30, must-revalidate';
+  }
+  if(MEDIUM_CACHE_EXT.test(pathname))return 'public, max-age=300, stale-while-revalidate=600';
   return null;
 }
 

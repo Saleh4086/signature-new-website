@@ -223,17 +223,19 @@
     // Unknown free-text: do NOT post bare csv_city (returns LA). Use Advanced Search.
     location.href=MLS_ADV;
   }
-  $$('.chip[data-mls-city]').forEach(c=>c.addEventListener('click',()=>{
+  $$('.chip[data-mls-city]').forEach(c=>c.addEventListener('click',e=>{
     const city=(c.dataset.mlsCity||'').trim();
     $$('.chip[data-mls-city]').forEach(x=>x.classList.toggle('on',x===c));
     const i=$('#hq'); if(i) i.value=city;
+    if(c.tagName==='A' && /csv_zipcode=/.test(c.getAttribute('href')||'')) return;
+    e.preventDefault();
     goMlsCity(city);
   }));
   const heroMls=$('#hero-mls-search');
   if(heroMls){
     heroMls.addEventListener('submit',e=>{
       e.preventDefault();
-      const i=heroMls.querySelector('#hq,input[name="csv_city"]');
+      const i=heroMls.querySelector('#hq,input[name="q"],input[name="csv_city"]');
       goMlsCity(((i&&i.value)||'').trim());
     });
   }
