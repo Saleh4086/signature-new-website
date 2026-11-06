@@ -32,3 +32,17 @@
  });
  notify();
 })();
+
+/* Add presentation classes to native search actions; preserve provider links and events. */
+(()=>{'use strict';
+ const root=document.getElementById('blackstone-idx-content');if(!root)return;
+ function styleActions(){
+  root.querySelectorAll('a,button').forEach(element=>{
+   const label=element.textContent.replace(/\s+/g,' ').trim().toLowerCase();
+   if(/^(modify search|new search)$/.test(label))element.classList.add('bsp-primary-search-action');
+   else if(/^(previous listing|next listing)$/.test(label))element.classList.add('bsp-secondary-search-action');
+  });
+ }
+ styleActions();
+ if(typeof MutationObserver==='function')new MutationObserver(styleActions).observe(root,{childList:true,subtree:true});
+})();

@@ -11,7 +11,7 @@ body.bsp-idx{background:var(--night);color:var(--text)}
 .bsp-idx #IDX-main :is(.IDX-resultsCell,.IDX-resultsContent,.IDX-resultsPhoto,.IDX-detailsWrapper,.IDX-panel,.IDX-form){background:var(--navy);color:var(--text);border-color:var(--line);border-radius:14px}
 .bsp-idx #IDX-main :is(.IDX-resultsPrice,.IDX-field-price,.IDX-detailsPrice){color:var(--gold-2);font-weight:600}
 .bsp-idx #IDX-main :is(.IDX-resultsAddress,.IDX-resultsMainInfo,.IDX-resultsField,.IDX-fieldData,.IDX-fieldLabel){color:var(--text)}
-.bsp-idx #blackstone-idx-content :is(canvas.mapboxgl-canvas,canvas.maplibregl-canvas,.tt-map canvas,.leaflet-tile-pane){filter:invert(1) hue-rotate(190deg) brightness(.85) contrast(.9) saturate(.35)}
+
 .bsp-idx #IDX-main .select2-container .select2-choice,.bsp-idx .select2-drop{background:var(--navy);color:var(--text);border-color:var(--gold)}
 .bsp-idx-footer{padding:18px 24px;border-top:1px solid var(--line);color:var(--muted);font-size:.75rem;background:var(--night)}
 .bsp-idx-footer a{margin-left:12px;color:var(--gold-2)}
@@ -70,3 +70,24 @@ body.bsp-idx-embedded #IDX-main{min-height:100svh;padding:12px}
 #blackstone-idx-content :is(.IDX-resultsCell,.IDX-resultsContent,.IDX-panel){
  background:#101a3a!important;border-color:rgba(217,185,112,.25)!important;
 }
+
+/* Preserve natural street/satellite colors; theme the interface, not the map imagery. */
+body.bsp-idx #blackstone-idx-content :is(canvas.mapboxgl-canvas,canvas.maplibregl-canvas,.tt-map canvas,.leaflet-tile-pane){filter:none!important}
+/* Match the original website's cream search field and navy text. */
+body.bsp-idx #blackstone-idx-content :is(input:not([type=checkbox]):not([type=radio]):not([type=submit]),select,textarea,.select2-choice,.select2-choices,.select2-selection){
+ background:#F7F4EE!important;color:#141A2E!important;border:1px solid rgba(217,185,112,.7)!important;border-radius:10px!important;min-height:42px;font-size:16px;
+}
+body.bsp-idx #blackstone-idx-content :is(.select2-chosen,.select2-selection__rendered,.select2-search-choice,option){color:#141A2E!important;background:#F7F4EE!important}
+body.bsp-idx #blackstone-idx-content input::placeholder,body.bsp-idx #blackstone-idx-content textarea::placeholder{color:#566078!important;opacity:1}
+body.bsp-idx #blackstone-idx-content label{color:#EEF1F8!important}
+body.bsp-idx .select2-drop,body.bsp-idx .select2-results,body.bsp-idx .select2-result-label{background:#F7F4EE!important;color:#141A2E!important}
+body.bsp-idx .select2-highlighted .select2-result-label{background:#101a3a!important;color:#F4E2B0!important}
+body.bsp-idx #blackstone-idx-content :is([id*="detailsAddress" i],[id*="detailsPrice" i],h1,h2,h3){color:#F4E2B0!important}
+body.bsp-idx #blackstone-idx-content :is(.bsp-primary-search-action,button[type=submit],input[type=submit]){
+ display:inline-flex;align-items:center;justify-content:center;min-height:42px;padding:9px 18px;border:1px solid #D9B970!important;border-radius:999px;background:linear-gradient(135deg,#F4E2B0,#D9B970)!important;color:#141A2E!important;font:600 .85rem/1.3 var(--sans);text-decoration:none!important;letter-spacing:.01em;
+}
+body.bsp-idx #blackstone-idx-content .bsp-secondary-search-action{
+ display:inline-flex;align-items:center;justify-content:center;min-height:42px;padding:9px 16px;margin:3px;border:1px solid rgba(217,185,112,.55);border-radius:999px;background:#101a3a;color:#F4E2B0!important;font:500 .82rem/1.3 var(--sans);text-decoration:none!important;
+}
+body.bsp-idx #blackstone-idx-content .bsp-primary-search-action{margin:3px}
+body.bsp-idx #blackstone-idx-content .bsp-primary-search-action:hover{background:#F4E2B0!important}
