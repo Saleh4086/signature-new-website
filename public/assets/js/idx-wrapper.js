@@ -68,7 +68,7 @@
    while(row&&row!==root&&!tabs.every(tab=>row.contains(tab)))row=row.parentElement;
    if(row&&row!==root){
     row.classList.add('bsp-search-tabs');
-    tabs.forEach(tab=>{let item=tab.parentElement;while(item&&item!==row){item.classList.add('bsp-search-tab-shell');item=item.parentElement;}});
+    tabs.forEach(tab=>{let item=tab.parentElement;while(item&&item!==row){item.classList.add('bsp-search-tab-shell');['background','background-image','border','box-shadow'].forEach(property=>item.style.setProperty(property,property==='background'?'transparent':'none','important'));item=item.parentElement;}});
    }
   }
 

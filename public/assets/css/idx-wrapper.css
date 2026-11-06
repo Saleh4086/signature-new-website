@@ -207,3 +207,17 @@ body.bsp-idx #blackstone-idx-content :is(button[type=submit],input[type=submit])
   border:0!important;border-radius:0!important;background:transparent!important;
  }
 }
+
+/* Draw Select2 once: its container and typing layer are not separate fields. */
+body.bsp-idx #blackstone-idx-content .select2-container{
+ background:transparent!important;border:0!important;border-radius:0!important;box-shadow:none!important;
+}
+body.bsp-idx #blackstone-idx-content .select2-container.select2-container-multi .select2-choices .select2-search-field,
+body.bsp-idx #blackstone-idx-content .select2-container.select2-container-multi .select2-choices .select2-search-field input,
+body.bsp-idx #blackstone-idx-content .select2-container .select2-selection .select2-search__field{
+ background:transparent!important;background-image:none!important;border:0!important;
+ outline:0!important;border-radius:0!important;box-shadow:none!important;
+}
+body.bsp-idx #blackstone-idx-content .bsp-search-tab :is(span,strong){
+ background:transparent!important;background-image:none!important;border:0!important;box-shadow:none!important;border-radius:0!important;
+}
