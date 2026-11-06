@@ -181,7 +181,7 @@
   };
   const EAST_BAY_ALIASES={
     discovbay:'discovery bay', discobay:'discovery bay', discoverybay:'discovery bay',
-    discovery:'discovery bay', dbay:'discovery bay', 'd bay':'discovery bay',
+    discovery:'discovery bay', dbay:'discovery bay', 'd bay':'discovery bay', discoverypay:'discovery bay', 'discovery pay':'discovery bay',
     walnutcreek:'walnut creek', wc:'walnut creek',
     baypoint:'bay point', sanramon:'san ramon'
   };
@@ -190,22 +190,24 @@
   }
   function compactKey(raw){ return normCityKey(raw).replace(/\s+/g,''); }
   function resolveEastBay(raw){
-    const key=normCityKey(raw);
+    let key=normCityKey(raw);
     if(!key) return null;
-    if(EAST_BAY_CITIES[key]) return {city:key.replace(/\b\w/g,c=>c.toUpperCase()).replace(/\bBay\b/,'Bay').replace(/\bCreek\b/,'Creek').replace(/\bPoint\b/,'Point'), zips:EAST_BAY_CITIES[key], canon:key};
-    const alias=EAST_BAY_ALIASES[compactKey(raw)]||EAST_BAY_ALIASES[key];
-    if(alias && EAST_BAY_CITIES[alias]){
-      const pretty=alias.split(' ').map(w=>w.charAt(0).toUpperCase()+w.slice(1)).join(' ');
-      return {city:pretty, zips:EAST_BAY_CITIES[alias], canon:alias};
-    }
-    // Prefix match: "discov" → Discovery Bay
-    const compact=compactKey(raw);
+    key=key.replace(/\bpay\b/g,'bay').replace(/\bbea\b/g,'bay');
+    const pretty=canon=>canon.split(' ').map(w=>w.charAt(0).toUpperCase()+w.slice(1)).join(' ');
+    if(EAST_BAY_CITIES[key]) return {city:pretty(key), zips:EAST_BAY_CITIES[key], canon:key};
+    const alias=EAST_BAY_ALIASES[compactKey(key)]||EAST_BAY_ALIASES[key]||EAST_BAY_ALIASES[compactKey(raw)];
+    if(alias && EAST_BAY_CITIES[alias]) return {city:pretty(alias), zips:EAST_BAY_CITIES[alias], canon:alias};
+    const compact=compactKey(key);
+    if(compact.startsWith('discov') || compact.startsWith('discover')) return {city:'Discovery Bay', zips:EAST_BAY_CITIES['discovery bay'], canon:'discovery bay'};
     if(compact.length>=4){
       for(const canon of Object.keys(EAST_BAY_CITIES)){
-        if(compactKey(canon).startsWith(compact) || compact.startsWith(compactKey(canon))){
-          const pretty=canon.split(' ').map(w=>w.charAt(0).toUpperCase()+w.slice(1)).join(' ');
-          return {city:pretty, zips:EAST_BAY_CITIES[canon], canon};
-        }
+        const cc=compactKey(canon);
+        if(cc.startsWith(compact) || compact.startsWith(cc)) return {city:pretty(canon), zips:EAST_BAY_CITIES[canon], canon};
+      }
+      const dist=(a,b)=>{const m=a.length,n=b.length; if(Math.abs(m-n)>2)return 99; let prev=[...Array(n+1).keys()]; for(let i=1;i<=m;i++){const cur=[i]; for(let j=1;j<=n;j++){const cost=a[i-1]===b[j-1]?0:1; cur[j]=Math.min(prev[j]+1,cur[j-1]+1,prev[j-1]+cost);} prev=cur;} return prev[n];};
+      for(const canon of Object.keys(EAST_BAY_CITIES)){
+        const cc=compactKey(canon);
+        if(dist(compact,cc)<=2) return {city:pretty(canon), zips:EAST_BAY_CITIES[canon], canon};
       }
     }
     return null;
