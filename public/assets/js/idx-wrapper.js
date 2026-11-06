@@ -110,7 +110,7 @@
   if(node.nodeType!==Node.ELEMENT_NODE)return;
   if(node.matches&&node.matches('a[href^="tel:"]')){
    const href=node.getAttribute('href')||'';
-   if(/917/.test(href.replace(/\D/g,''))){node.setAttribute('href','tel:'+GOOD_TEL);node.textContent=GOOD_DISPLAY;}
+   const d=href.replace(/\D/g,'');if(d.includes('9259175595')||d.endsWith('9175595')){node.setAttribute('href','tel:'+GOOD_TEL);if(/9\s*2\s*5|917/.test(node.textContent||''))node.textContent=GOOD_DISPLAY;}
   }
   node.childNodes&&node.childNodes.forEach(fixNode);
  }
