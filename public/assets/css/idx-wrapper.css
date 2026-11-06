@@ -114,3 +114,19 @@ body.bsp-idx-embedded>.bsp-chrome{display:none}
 /* Select2's internal typing input must not inherit the outer form-control box. */
 body.bsp-idx #blackstone-idx-content :is(.select2-search-field input,.select2-search input,.select2-search__field){min-height:0!important;height:auto!important;background:transparent!important;border:0!important;border-radius:0!important;box-shadow:none!important;margin:0!important}
 @media(max-width:820px){body.bsp-idx #IDX-main{min-width:0!important;max-width:100%!important;padding:10px!important}body.bsp-idx #blackstone-idx-content .select2-container{max-width:100%}}
+
+/* IDX uses Select2 multi-selects: theme the inner typing layer as well as its shell. */
+body.bsp-idx #blackstone-idx-content .select2-container.select2-container-multi .select2-choices,
+body.bsp-idx #blackstone-idx-content .select2-container.select2-container-multi .select2-choices .select2-search-field,
+body.bsp-idx #blackstone-idx-content .select2-container.select2-container-multi .select2-choices .select2-search-field input{
+ background:#F7F4EE!important;background-image:none!important;color:#141A2E!important;box-shadow:none!important;
+}
+body.bsp-idx #blackstone-idx-content .select2-container.select2-container-multi .select2-choices .select2-search-field input{
+ -webkit-text-fill-color:#141A2E!important;border:0!important;min-height:0!important;line-height:1.5!important;
+}
+body.bsp-idx #blackstone-idx-content .select2-container.select2-container-multi .select2-choices .select2-search-field input::placeholder{
+ color:#566078!important;-webkit-text-fill-color:#566078!important;opacity:1!important;
+}
+body.bsp-idx #blackstone-idx-content .select2-container.select2-container-multi .select2-choices .select2-search-choice{
+ background:#101a3a!important;color:#F4E2B0!important;border:1px solid #D9B970!important;border-radius:7px!important;box-shadow:none!important;
+}
