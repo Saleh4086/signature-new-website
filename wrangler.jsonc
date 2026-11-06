@@ -17,7 +17,9 @@
   // so a main deploy cannot inherit preview-only vars. Do not add BROKERAGE_OS_BASE_URL.
   // Secrets are not affected by keep_vars.
   "vars": {
-    "BROKERAGE_OS_WEBSITE_LEADS_ENABLED": "true"
+    "BROKERAGE_OS_WEBSITE_LEADS_ENABLED": "true",
+    "IDX_ENABLED": "true",
+    "IDX_SEARCH_URL": "https://blackstonesignatureproperty.idxbroker.com/idx/search/advanced"
   },
   "preview_urls": true,
   "keep_vars": false
