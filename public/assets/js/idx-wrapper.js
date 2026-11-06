@@ -39,6 +39,16 @@
  function styleActions(){
   root.querySelectorAll('a,button').forEach(element=>{
    const label=element.textContent.replace(/\s+/g,' ').trim().toLowerCase();
+   const cleanLabel=label.replace(/[♥♡❤💙\uFE0F]/gu,'').trim();
+   const wording={'add to favorites':'Save property','remove from favorites':'Remove from saved','print flyer':'Print brochure','send message':'Send inquiry','my account':'My account'};
+   if(wording[cleanLabel]){
+    const next=wording[cleanLabel];
+    const walker=document.createTreeWalker(element,NodeFilter.SHOW_TEXT);
+    let text;while((text=walker.nextNode())){if(text.nodeValue.replace(/[♥♡❤💙\uFE0F]/gu,'').trim()){text.nodeValue=next+' ';break;}}
+    element.setAttribute('aria-label',next);
+    element.classList.add(cleanLabel==='send message'?'bsp-detail-submit':'bsp-detail-action');
+   }
+
    if(/^(advanced search|listing id|address|map search)$/.test(label)){
     element.classList.add('bsp-search-tab');
     let active=false;
@@ -48,6 +58,19 @@
    }
    if(/^(modify search|new search)$/.test(label))element.classList.add('bsp-primary-search-action');
    else if(/^(previous listing|next listing)$/.test(label))element.classList.add('bsp-secondary-search-action');
+  });
+
+  root.querySelectorAll('input[type="submit"]').forEach(input=>{
+   if(input.value&&input.value.trim().toLowerCase()==='send message'){input.value='Send inquiry';input.classList.add('bsp-detail-submit');}
+  });
+  root.querySelectorAll('form[id*="contact" i],form[id*="moreinfo" i]').forEach(form=>form.classList.add('bsp-details-inquiry'));
+  root.querySelectorAll('a[href^="mailto:"]').forEach(link=>{
+   if(!/gharibyar61@gmail\.com/i.test(link.getAttribute('href')||''))return;
+   let block=link.parentElement;
+   while(block&&block!==root){
+    if(/917[- .]?5595|722[- .]?5144/.test(block.textContent)){block.classList.add('bsp-agent-contact');break;}
+    block=block.parentElement;
+   }
   });
  }
  styleActions();
