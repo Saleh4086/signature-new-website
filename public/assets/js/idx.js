@@ -9,12 +9,12 @@
   function check(){
     if(failed)return;
     if(!box.querySelector('iframe,canvas,.leaflet-container,.mapboxgl-map,.gm-style'))return;
-    clearTimeout(timer);box.hidden=false;
-    message('Use Search MLS homes above for the full MLS search and current listing details.');
+    clearTimeout(timer);box.hidden=false;const links=document.getElementById('idx-links');if(links)links.hidden=false;
+    message('MLS map provided by IDX Broker.');
   }
   function unavailable(){
     failed=true;stop();box.hidden=true;
-    message('The embedded map is unavailable here. Use Search MLS homes above.');
+    message('The MLS map could not load. Please contact Sal for help with your search.');
   }
   if(typeof MutationObserver==='function'){
     observer=new MutationObserver(check);

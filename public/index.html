@@ -53,16 +53,20 @@
  <p class="note" style="margin-top:12px;font-size:.78rem;color:var(--muted)">Published data only: Freddie Mac Primary Mortgage Market Survey® via FRED®, and Zillow Research (ZHVI; ZORI all-rentals index for rent trends) and Zillow Rentals 3-bed asking rents. Rates and values update automatically.</p>
 </div></section>
 <section class="sec" style="padding:20px 0 50px" id="mls"><div class="wrap"><div class="idx-box rv" style="margin:0">
- <h2 style="margin:0">Search Bridge MLS homes</h2>
- <p>Browse homes by city, county, price, beds and property type in Blackstone’s official IDX Broker search.</p>
- <a class="btn btn-gold" href="https://blackstonesignatureproperty.idxbroker.com/idx/search/advanced">Search MLS homes →</a>
-</div></div></section>
+ <div style="display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;align-items:center"><h2 style="margin:0">MLS quick search</h2><span class="idx-status">● Bridge MLS access approved</span></div>
+ <form class="idxq" action="search.html" method="get" style="margin-top:14px">
+  <label>County<select><option value="531">Contra Costa County</option><option value="528">Alameda County</option><option value="311">San Joaquin County</option><option value="1034">Sacramento County</option><option value="2632">Stanislaus County</option></select></label>
+  <label>Min price<select name="min"><option value="">Any</option><option value="300000">$300K</option><option value="400000">$400K</option><option value="500000">$500K</option><option value="600000">$600K</option><option value="700000">$700K</option><option value="800000">$800K</option><option value="1000000">$1M</option><option value="1250000">$1.25M</option><option value="1500000">$1.5M</option><option value="2000000">$2M</option></select></label>
+  <label>Max price<select name="max"><option value="">Any</option><option value="300000">$300K</option><option value="400000">$400K</option><option value="500000">$500K</option><option value="600000">$600K</option><option value="700000">$700K</option><option value="800000">$800K</option><option value="1000000">$1M</option><option value="1250000">$1.25M</option><option value="1500000">$1.5M</option><option value="2000000">$2M</option></select></label>
+  <label>Beds<select name="beds"><option value="">Any</option><option>1</option><option>2</option><option>3</option><option>4</option><option>5</option></select></label>
+  <button class="btn btn-gold" type="submit"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg> Search</button>
+ </form><p style="margin:10px 0 0;font-size:.8rem">These filters open the local map of Sal’s listings. The embedded IDX search is on the map page.</p></div></div></section>
 
 <section class="sec bg-glow"><div class="wrap">
  <div class="map-feature rv">
   <div class="txt"><div class="eyebrow">New · Map search</div><h2>See the East Bay <span class="gold-text">the way buyers do.</span></h2>
    <p class="lead">A split map-and-list search with price pins, filters for price, beds, baths, type and city, and one-tap zoom to each community.</p>
-   <p class="disclaimer">The local map shows Sal’s listings separately from the MLS search. <a href="https://blackstonesignatureproperty.idxbroker.com/idx/search/advanced">Browse MLS homes through IDX Broker →</a></p>
+   <p class="disclaimer">Explore Sal’s listings on the local map. MLS listings are provided separately through the embedded IDX search.</p>
    <div class="btn-row" style="margin-top:20px"><a class="btn btn-gold" href="search.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 10c0 6-8 12-8 12S4 16 4 10a8 8 0 0 1 16 0z"/><circle cx="12" cy="10" r="3"/></svg> Open map search</a><a class="btn btn-ghost" href="contact.html?topic=Buying">Request a personal search</a></div></div>
   <div class="mini" id="minimap" role="img" aria-label="Map of the East Bay with sample listing price pins"></div>
  </div>
