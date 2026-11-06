@@ -96,3 +96,28 @@
  styleActions();
  if(typeof MutationObserver==='function')new MutationObserver(styleActions).observe(root,{childList:true,subtree:true});
 })();
+
+/* Normalize IDX agent phone to Blackstone (925) 722-5144 */
+(()=>{'use strict';
+ const GOOD_DISPLAY='(925) 722-5144';
+ const GOOD_TEL='+19257225144';
+ const BAD=/9\s*2\s*5\s*[-.]?\s*9\s*1\s*7\s*[-.]?\s*5\s*5\s*9\s*5/gi;
+ function fixNode(node){
+  if(node.nodeType===Node.TEXT_NODE){
+   if(BAD.test(node.nodeValue||'')){node.nodeValue=(node.nodeValue||'').replace(BAD,GOOD_DISPLAY);BAD.lastIndex=0;}
+   return;
+  }
+  if(node.nodeType!==Node.ELEMENT_NODE)return;
+  if(node.matches&&node.matches('a[href^="tel:"]')){
+   const href=node.getAttribute('href')||'';
+   if(/917/.test(href.replace(/\D/g,''))){node.setAttribute('href','tel:'+GOOD_TEL);node.textContent=GOOD_DISPLAY;}
+  }
+  node.childNodes&&node.childNodes.forEach(fixNode);
+ }
+ function run(){
+  const roots=[document.getElementById('blackstone-idx-content'),document.body].filter(Boolean);
+  roots.forEach(fixNode);
+ }
+ run();
+ new MutationObserver(run).observe(document.documentElement,{childList:true,subtree:true,characterData:true});
+})();
