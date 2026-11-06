@@ -53,3 +53,20 @@ body.bsp-idx-embedded #IDX-main{min-height:100svh;padding:12px}
 }
 
 .bsp-idx-footer[hidden]{display:none}
+
+/* Keep provider listing text legible on the existing navy theme. */
+#blackstone-idx-content :is([class*="result" i],[class*="listing" i],[class*="property-card" i]){
+ color:#EEF1F8!important;
+}
+#blackstone-idx-content :is([class*="result" i],[class*="listing" i],[class*="property-card" i]) :is(p,span,small,dt,dd,label,li){
+ color:#EEF1F8!important;
+}
+#blackstone-idx-content :is([class*="address" i],[class*="bed" i],[class*="bath" i],[class*="sqft" i],[class*="squarefoot" i],[class*="fieldData" i]){
+ color:#EEF1F8!important;
+}
+#blackstone-idx-content :is([class*="price" i],[class*="listingPrice" i]){
+ color:#F4E2B0!important;
+}
+#blackstone-idx-content :is(.IDX-resultsCell,.IDX-resultsContent,.IDX-panel){
+ background:#101a3a!important;border-color:rgba(217,185,112,.25)!important;
+}
