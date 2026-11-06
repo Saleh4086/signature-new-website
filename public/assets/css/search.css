@@ -171,3 +171,28 @@ body.idx-expanded #idx-widget{width:100%;min-height:65vh}
 body.idx-expanded #idx-widget>div,body.idx-expanded #idx-widget>iframe{width:100%!important;max-width:100%!important}
 body.idx-expanded #idx-expand{position:sticky;top:0;z-index:10;background:var(--navy)}
 @media(max-width:820px){body.idx-expanded #idx{inset:calc(var(--hdr) + 6px) 6px 8px;padding:12px}}
+
+/* Match the original Leaflet road-map palette on IDX's TomTom/WebGL map.
+   Target map canvases only; property photographs and attribution stay unchanged. */
+#idx-widget canvas.mapboxgl-canvas,
+#idx-widget canvas.maplibregl-canvas,
+#idx-widget .mapboxgl-canvas-container canvas,
+#idx-widget .maplibregl-canvas-container canvas,
+#idx-widget .tt-map canvas {
+  filter:invert(1) hue-rotate(190deg) brightness(.85) contrast(.9) saturate(.35);
+}
+#idx-widget .mapboxgl-ctrl-group,
+#idx-widget .maplibregl-ctrl-group,
+#idx-widget .tt-ctrl-group {
+  background:var(--navy);
+  border:1px solid var(--gold);
+  border-radius:10px;
+}
+#idx-widget .mapboxgl-ctrl-group button,
+#idx-widget .maplibregl-ctrl-group button,
+#idx-widget .tt-ctrl-group button {
+  background-color:var(--navy);
+  color:var(--gold-2);
+}
+#idx-widget .mapboxgl-ctrl-icon,
+#idx-widget .maplibregl-ctrl-icon {filter:invert(1)}
