@@ -13,6 +13,7 @@
  window.addEventListener('message',event=>{
    if(event.origin!==origin||event.source!==frame.contentWindow||!event.data||event.data.type!=='bsp-idx-ready')return;
    ready=true;status.textContent='MLS search provided by IDX Broker';
+   const footer=document.querySelector('.bsp-idx-footer--compact');if(footer)footer.hidden=false;
    document.querySelectorAll('[data-view]').forEach(button=>button.setAttribute('aria-pressed',String(button.dataset.view===event.data.view)));
    if(pending){const view=pending;pending=null;if(view!==event.data.view)setView(view);}
  });

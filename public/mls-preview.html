@@ -9,10 +9,10 @@
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=Inter:wght@400;500;600;700&family=Vazirmatn:wght@500&display=swap">
 <link rel="stylesheet" href="https://blackstonesignatureproperty.com/assets/css/style.css?v=rev20261103b">
-<link rel="stylesheet" href="https://blackstonesignatureproperty.com/assets/css/idx-wrapper.css?v=20261106">
+<link rel="stylesheet" href="https://blackstonesignatureproperty.com/assets/css/idx-wrapper.css?v=20261106-refined-footer">
 <style>
 body.bsp-mls-preview{margin:0;background:var(--night);overflow:hidden}
-.mls-workspace{position:fixed;inset:var(--hdr) 0 0;display:grid;grid-template-rows:auto minmax(0,1fr);background:var(--night)}
+.mls-workspace{position:fixed;inset:var(--hdr) 0 0;display:grid;grid-template-rows:auto minmax(0,1fr) auto;background:var(--night)}
 .mls-tools{display:flex;align-items:center;gap:8px;padding:10px 18px;border-bottom:1px solid var(--line);background:var(--navy);flex-wrap:wrap}
 .mls-tools strong{font-family:var(--serif);font-size:1.3rem;color:var(--gold-2);margin-right:auto}
 .mls-tools button{border:1px solid var(--gold);background:transparent;color:var(--gold-2);border-radius:999px;padding:8px 15px;min-height:42px;font:inherit;cursor:pointer}
@@ -35,7 +35,15 @@ body.bsp-mls-preview{margin:0;background:var(--night);overflow:hidden}
 <main class="mls-workspace" id="blackstone-idx-content">
  <div class="mls-tools"><strong>East Bay homes</strong><button type="button" data-view="map" aria-pressed="true">Map + homes</button><button type="button" data-view="list" aria-pressed="false">Homes only</button><p id="mls-status" role="status">On-site search preview</p></div>
  <iframe id="mls-frame" name="blackstone-mls" title="Search Bridge MLS homes and property details" src="https://blackstonesignatureproperty.idxbroker.com/idx/map/mapsearch" sandbox="allow-scripts allow-same-origin allow-forms allow-downloads" allow="geolocation" referrerpolicy="strict-origin-when-cross-origin"></iframe>
+<footer class="bsp-idx-footer bsp-idx-footer--compact" hidden>
+ <div class="bsp-footer-grid">
+  <div class="bsp-footer-brand"><a href="https://blackstonesignatureproperty.com/" class="bsp-footer-logo"><img src="https://blackstonesignatureproperty.com/assets/logo-mark.png" alt="" width="40" height="46"><span><strong>BLACKSTONE</strong><small>Signature Properties &amp; Investments</small></span></a><p>Broker-led real estate for the East Bay.<br>Buy, sell, invest, and rent with Sal.</p></div>
+  <div class="bsp-footer-contact"><h2>Connect with Sal</h2><a href="tel:+19257225144">(925) 722-5144</a><a href="mailto:gharibyar61@gmail.com">gharibyar61@gmail.com</a><span>Sal Gharibyar · Broker / Owner</span></div>
+  <div class="bsp-footer-credentials"><h2>Blackstone Signature</h2><p>A division of Eagle Rock Ventures Inc.<br>California DRE #02117470<br>Broker DRE #01418692</p><span>Equal Housing Opportunity</span></div>
+ </div>
+ <div class="bsp-footer-legal"><span>© Blackstone Signature Properties &amp; Investments</span><nav aria-label="Legal"><a href="https://blackstonesignatureproperty.com/privacy-policy.html">Privacy Policy</a><a href="https://blackstonesignatureproperty.com/terms.html">Terms &amp; Conditions</a></nav></div>
+</footer>
 </main>
 <script src="https://blackstonesignatureproperty.com/assets/js/idx-wrapper.js?v=20261106-embedded" defer></script>
-<script src="https://blackstonesignatureproperty.com/assets/js/mls-preview.js?v=20261106" defer></script>
+<script src="https://blackstonesignatureproperty.com/assets/js/mls-preview.js?v=20261106-footer" defer></script>
 </body></html>
