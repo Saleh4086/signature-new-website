@@ -358,3 +358,71 @@
  boot();
  document.addEventListener('DOMContentLoaded', boot);
 })();
+
+/* Slim Blackstone mark + clickable phone beside the listing photo (detail and photo gallery). */
+(()=>{'use strict';
+ const HOME='https://blackstonesignatureproperty.com/';
+ const LOGO='https://blackstonesignatureproperty.com/assets/logo-mark.png';
+ const TEL='tel:+19257225144';
+ const PHONE='(925) 722-5144';
+ let scheduled=false;
+
+ function brandBar(){
+  const el=document.createElement('div');
+  el.className='bsp-photo-brand';
+  el.setAttribute('role','group');
+  el.setAttribute('aria-label','Blackstone Signature Properties');
+  el.innerHTML=
+   '<a class="bsp-photo-brand__home" href="'+HOME+'">'+
+    '<img src="'+LOGO+'" alt="" width="32" height="36">'+
+    '<span><b>BLACKSTONE</b><small>Signature Properties</small></span>'+
+   '</a>'+
+   '<a class="bsp-photo-brand__phone" href="'+TEL+'">'+
+    '<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M6.6 3.8c.4-.4 1-.5 1.5-.3l2.2.9c.5.2.9.7.9 1.3l-.2 2.4c0 .5-.3 1-.8 1.2l-1.3.6a12.6 12.6 0 0 0 5.8 5.8l.6-1.3c.2-.5.7-.8 1.2-.8l2.4-.2c.6 0 1.1.4 1.3.9l.9 2.2c.2.5.1 1.1-.3 1.5l-1.5 1.5c-.4.4-1 .6-1.6.5C10.4 19.2 4.8 13.6 4.1 6.9c-.1-.6.1-1.2.5-1.6l2-1.5z"/></svg>'+
+    '<span>'+PHONE+'</span>'+
+   '</a>';
+  return el;
+ }
+
+ function slot(){
+  if(/\/idx\/details\//.test(location.pathname)){
+   const photo=document.getElementById('IDX-primaryPhoto');
+   if(photo) return {node:photo, position:'afterend'};
+  }
+  if(/\/idx\/photogallery\//.test(location.pathname)){
+   const header=document.getElementById('IDX-photoGalleryHeader');
+   if(header) return {node:header, position:'afterend'};
+   const gallery=document.getElementById('IDX-photoGallery');
+   if(gallery) return {node:gallery, position:'afterbegin'};
+  }
+  return null;
+ }
+
+ function place(){
+  const target=slot();
+  const current=document.querySelector('#blackstone-idx-content .bsp-photo-brand, .bsp-photo-brand');
+  if(!target){
+   if(current && current.parentElement) current.remove();
+   return;
+  }
+  const placed=target.position==='afterend'
+   ? target.node.nextElementSibling===current
+   : target.node.firstElementChild===current;
+  if(current && placed) return;
+  const el=current||brandBar();
+  target.node.insertAdjacentElement(target.position, el);
+ }
+
+ function schedule(){
+  if(scheduled) return;
+  scheduled=true;
+  requestAnimationFrame(()=>{scheduled=false; try{place();}catch(e){}});
+ }
+ schedule();
+ document.addEventListener('DOMContentLoaded', schedule);
+ window.addEventListener('load', schedule);
+ const root=document.getElementById('blackstone-idx-content')||document.body;
+ if(root && typeof MutationObserver==='function'){
+  new MutationObserver(schedule).observe(root,{childList:true,subtree:true});
+ }
+})();

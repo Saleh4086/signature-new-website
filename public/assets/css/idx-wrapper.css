@@ -615,3 +615,45 @@ body.bsp-idx .bsp-hide-lead-welcome{
     border-top:1px solid rgba(217,185,112,.25)!important;
   }
 }
+
+/* Listing photo brand bar: logo + phone sit under the photo, above Photos. */
+body.bsp-idx #blackstone-idx-content .bsp-photo-brand{
+  display:flex;align-items:center;justify-content:space-between;gap:8px 12px;flex-wrap:wrap;
+  box-sizing:border-box;width:100%;max-width:100%;margin:10px 0 8px;padding:8px 10px 8px 12px;
+  min-height:52px;background:linear-gradient(120deg,#0A1024 0%,#101a3a 70%);
+  border:1px solid rgba(217,185,112,.48);border-radius:14px;
+  box-shadow:0 10px 24px -18px rgba(0,0,0,.85);
+}
+body.bsp-idx #blackstone-idx-content .bsp-photo-brand__home{
+  display:flex;align-items:center;gap:10px;min-width:0;text-decoration:none!important;color:#EEF1F8!important;
+}
+body.bsp-idx #blackstone-idx-content .bsp-photo-brand__home img{
+  width:32px!important;height:36px!important;max-width:32px!important;object-fit:contain;flex:none;display:block;
+}
+body.bsp-idx #blackstone-idx-content .bsp-photo-brand__home span{min-width:0}
+body.bsp-idx #blackstone-idx-content .bsp-photo-brand__home b{
+  display:block;font-family:var(--serif);font-weight:600;letter-spacing:.14em;font-size:.92rem;line-height:1;color:#F4E2B0!important;
+}
+body.bsp-idx #blackstone-idx-content .bsp-photo-brand__home small{
+  display:block;margin-top:3px;color:#D9B970!important;font-size:.58rem;letter-spacing:.11em;text-transform:uppercase;line-height:1.2;
+}
+body.bsp-idx #blackstone-idx-content .bsp-photo-brand__phone{
+  display:inline-flex;align-items:center;justify-content:center;gap:7px;flex:none;margin-left:auto;
+  min-height:40px;padding:8px 14px;border-radius:999px;border:1px solid #D9B970;
+  background:linear-gradient(135deg,#F4E2B0,#D9B970);color:#141A2E!important;-webkit-text-fill-color:#141A2E!important;
+  font:600 .9rem/1.2 var(--sans);letter-spacing:.01em;text-decoration:none!important;white-space:nowrap;
+}
+body.bsp-idx #blackstone-idx-content .bsp-photo-brand__phone svg{
+  width:15px;height:15px;flex:none;fill:currentColor;
+}
+body.bsp-idx #blackstone-idx-content .bsp-photo-brand__phone:hover{background:#F4E2B0;color:#141A2E!important}
+body.bsp-idx #blackstone-idx-content .bsp-photo-brand__home:focus-visible,
+body.bsp-idx #blackstone-idx-content .bsp-photo-brand__phone:focus-visible{
+  outline:2px solid #F4E2B0;outline-offset:3px;
+}
+@media (max-width:420px){
+  body.bsp-idx #blackstone-idx-content .bsp-photo-brand{padding:7px 8px 7px 10px;gap:8px}
+  body.bsp-idx #blackstone-idx-content .bsp-photo-brand__home b{font-size:.82rem;letter-spacing:.1em}
+  body.bsp-idx #blackstone-idx-content .bsp-photo-brand__home small{letter-spacing:.06em;font-size:.52rem}
+  body.bsp-idx #blackstone-idx-content .bsp-photo-brand__phone{padding:8px 11px;font-size:.82rem;min-height:40px}
+}
