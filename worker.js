@@ -858,6 +858,33 @@ async function mirrorWebsiteLead(payload, savedLead, env) {
   } catch {return {enabled:true,received:false};}
 }
 
+async function copyWebsiteLeadToAurum(payload, savedLead, env) {
+  if (!env.AURUM_WEBSITE_LEAD_TOKEN || !env.AURUM_WEBSITE_LEAD_URL) return;
+  if (payload.lead_type === "tenant_repair") return; // Preserve the dedicated Property OS repair workflow.
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 5000);
+  try {
+    const endpoint = new URL(env.AURUM_WEBSITE_LEAD_URL);
+    if (endpoint.protocol !== "https:" || endpoint.hostname !== "aurumphase2test.gharibyar61.workers.dev" ||
+        endpoint.pathname !== "/api/website-leads/intake") throw Error("Invalid AURUM intake URL");
+    const leadType = /seller|sell|valuation/i.test(payload.lead_type || "") ? "seller" :
+      /buyer|buy|purchase|home_search/i.test(payload.lead_type || "") ? "buyer" : "general";
+    const id = savedLead?.id && /^[a-zA-Z0-9_-]{8,100}$/.test(String(savedLead.id))
+      ? String(savedLead.id) : crypto.randomUUID();
+    const response = await fetch(endpoint.href, {
+      method: "POST",
+      headers: { "content-type": "application/json", authorization: "Bearer " + env.AURUM_WEBSITE_LEAD_TOKEN },
+      body: JSON.stringify({ source: "main", submissionId: id, name: payload.name,
+        email: payload.email || "", phone: payload.phone || "", leadType,
+        propertyAddress: payload.property_address || "", request: payload.lead_type || "general",
+        message: String(payload.notes || "").slice(0,500) }),
+      signal: controller.signal
+    });
+    if (!response.ok) console.error("AURUM main website lead copy failed", response.status);
+  } catch (error) { console.error("AURUM main website lead copy unavailable", String(error)); }
+  finally { clearTimeout(timeout); }
+}
+
 async function handleLeadCapture(request, env) {
   const cors = leadCorsHeaders(request);
   if (request.method === "OPTIONS") {
@@ -885,6 +912,8 @@ async function handleLeadCapture(request, env) {
   try {
     const savedLead = await insertSupabaseLead(payload, env);
     const brokerageMirror = await mirrorWebsiteLead(payload, savedLead, env);
+    // Optional AURUM copy after CRM save; failure never blocks existing CRM or email flow.
+    await copyWebsiteLeadToAurum(payload, savedLead, env);
 
     // Add-on only: tenant repair requests are copied to Property OS AFTER CRM save succeeds.
     // Property OS delivery is intentionally non-blocking for the website/CRM chain.
