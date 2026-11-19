@@ -1121,6 +1121,92 @@
   paint();
  }
 
+ const SALE_PT='1', LEASE_PT='3';
+ let deal='sale';
+ let saleLpHTML='', saleHpHTML='', typeMount=null;
+ const RENT_TYPES=['Single Family Residence','Condominium','Townhouse','Apartment'];
+ function money(n){return '$'+Number(n).toLocaleString('en-US')+(Number(n)>=10000?'+':'');}
+ function fillPrice(select, values){
+  select.innerHTML='<option value=""></option>'+values.map(n=>'<option value="'+n+'">'+money(n)+'</option>').join('');
+  select.value='';
+  trigger(select);
+ }
+ function applyPrices(){
+  const lp=document.getElementById('IDX-lp'), hp=document.getElementById('IDX-hp');
+  if(!lp||!hp) return;
+  if(!saleLpHTML){ saleLpHTML=lp.innerHTML; saleHpHTML=hp.innerHTML; }
+  if(deal==='rent'){ fillPrice(lp,[1000,1500,2000,2500,3000,4000,5000]); fillPrice(hp,[2000,2500,3000,4000,5000,7500,10000]); }
+  else { lp.innerHTML=saleLpHTML; hp.innerHTML=saleHpHTML; trigger(lp); trigger(hp); }
+  const minL=document.querySelector('label[for="IDX-lp"], #IDX-minPrice-group label');
+  const maxL=document.querySelector('label[for="IDX-hp"], #IDX-maxPrice-group label');
+  if(minL) minL.childNodes[0].nodeValue=deal==='rent'?'Min rent':'Min Price';
+  if(maxL) maxL.childNodes[0].nodeValue=deal==='rent'?'Max rent':'Max Price';
+ }
+ function rebuildTypes(){
+  const select=document.getElementById('IDX-propSubType');
+  if(!typeMount||!select) return;
+  typeMount.replaceChildren();
+  let options=realOptions(select).filter(opt=>opt.value);
+  if(deal==='rent'){
+   options=options.filter(opt=>!/leased land/i.test(opt.text));
+   const picked=RENT_TYPES.map(name=>options.find(opt=>opt.text===name)).filter(Boolean);
+   if(picked.length) options=picked;
+  }
+  const grid=document.createElement('div');
+  grid.className='bsp-tiles';
+  const names={'Single Family Residence':'House','Condominium':'Condo','Townhouse':'Townhouse','Apartment':'Apartment'};
+  options.forEach(opt=>{
+   const btn=document.createElement('button');
+   btn.type='button';
+   btn.className='bsp-tile';
+   btn.dataset.value=opt.value;
+   btn.textContent=names[opt.text]||opt.text;
+   btn.addEventListener('click',()=>{
+    const current=new Set(selectedMulti(select));
+    if(current.has(opt.value)) current.delete(opt.value); else current.add(opt.value);
+    setMulti(select, [...current]);
+    paint();
+   });
+   grid.appendChild(btn);
+  });
+  typeMount.appendChild(grid);
+  typeMount.paint=()=>{
+   const current=new Set(selectedMulti(select));
+   grid.querySelectorAll('.bsp-tile').forEach(btn=>{
+    btn.classList.toggle('is-on', current.has(btn.dataset.value));
+    btn.setAttribute('aria-pressed', btn.classList.contains('is-on')?'true':'false');
+   });
+  };
+ }
+ function setDeal(next){
+  if(deal===next) return;
+  deal=next;
+  document.querySelectorAll('.bsp-mode-btn').forEach(btn=>btn.classList.toggle('is-on', btn.dataset.deal===deal));
+  const pt=document.getElementById('IDX-pt');
+  const sub=document.getElementById('IDX-propSubType');
+  if(pt) setSingle(pt, deal==='rent'?LEASE_PT:SALE_PT);
+  applyPrices();
+  if(sub) setMulti(sub, []);
+  rebuildTypes();
+  setTimeout(rebuildTypes, 800);
+  setTimeout(rebuildTypes, 1700);
+ }
+ function modeBar(){
+  const bar=document.createElement('div');
+  bar.className='bsp-mode';
+  bar.setAttribute('role','group');
+  bar.setAttribute('aria-label','Listing type');
+  [['sale','For Sale'],['rent','For Rent']].forEach(([id,label])=>{
+   const btn=document.createElement('button');
+   btn.type='button';
+   btn.className='bsp-mode-btn'+(id===deal?' is-on':'');
+   btn.dataset.deal=id;
+   btn.textContent=label;
+   btn.addEventListener('click',()=>setDeal(id));
+   bar.appendChild(btn);
+  });
+  return bar;
+ }
  function build(){
   const form=document.getElementById(FORM_ID);
   if(!form || form.dataset.bspAdv==='1') return false;
@@ -1159,6 +1245,7 @@
   bedsSlot.appendChild(beds);
   if(baths) bathsSlot.appendChild(baths);
   main.append(whereSlot, priceSlot, bedsSlot, bathsSlot, goSlot);
+  card.appendChild(modeBar());
   const more=document.createElement('button');
   more.type='button';
   more.className='bsp-adv-more';
@@ -1218,9 +1305,10 @@
    bin.appendChild(pt.closest('.IDX-control-group')||pt);
   }
   if(subType){
-   const control=tiles(subType);
-   painters.push(control.paint);
-   body.appendChild(section('Home type', control));
+   typeMount=document.createElement('div');
+   painters.push(()=>{ if(typeMount.paint) typeMount.paint(); });
+   body.appendChild(section('Home type', typeMount));
+   rebuildTypes();
    const group=subType.closest('.IDX-control-group');
    if(group) bin.appendChild(group);
   }
@@ -1315,7 +1403,27 @@
   });
 
   document.body.appendChild(sheet);
+  sheet.body.insertBefore(modeBar(), sheet.body.firstChild);
   more.addEventListener('click',()=>sheet.open());
+  form.addEventListener('submit',()=>{
+   const sel=document.getElementById('IDX-ccz-select');
+   const ccz=document.getElementById('IDX-ccz');
+   if(!sel||!ccz) return;
+   const picked=[...sel.selectedOptions].filter(opt=>opt.value);
+   const brentwood=picked.find(opt=>/brentwood/i.test(opt.textContent||''));
+   if(brentwood){
+    ccz.value='';
+    [['csv_city','Brentwood'],['csv_zipcode','94513']].forEach(([name,value])=>{
+     let el=form.querySelector('input[data-bsp-loc="'+name+'"]');
+     if(!el){ el=document.createElement('input'); el.type='hidden'; el.name=name; el.dataset.bspLoc=name; form.appendChild(el); }
+     el.value=value;
+    });
+    return;
+   }
+   if(picked.length && (!ccz.value || /^(city|county|zipcode)$/i.test(ccz.value))){
+    ccz.value=picked.map(opt=>(opt.getAttribute('data-type')||'city')+'-'+opt.value).join(',');
+   }
+  });
   sheet.reset.addEventListener('click',()=>{ if(initial) restore(initial); });
 
   const submits=[...form.querySelectorAll('button, input[type="submit"]')].filter(el=>{
