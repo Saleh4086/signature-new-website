@@ -1550,3 +1550,19 @@
  }
  run().catch(()=>{});
 })();
+
+/* Advanced Search: preset Min/Max price lists (typing a custom amount still works) 2026-11-19 */
+(function(){
+  if(!/\/idx\/search\/advanced\/?$/i.test(location.pathname)) return;
+  var P=[100000,200000,300000,400000,500000,600000,700000,800000,900000,1000000,1250000,1500000,1750000,2000000,2500000,3000000,4000000,5000000,7500000,10000000];
+  function fmt(v){return '$'+v.toLocaleString('en-US');}
+  function fill(id){
+    var s=document.getElementById(id); if(!s||s.getAttribute('data-bsp-prices')) return !!s;
+    var have={}; for(var i=0;i<s.options.length;i++) have[s.options[i].value]=1;
+    P.forEach(function(v){ if(!have[v]){ var o=document.createElement('option'); o.value=String(v); o.textContent=fmt(v); s.appendChild(o);} });
+    var opts=[].slice.call(s.options).filter(function(o){return o.value;}).sort(function(a,b){return (+a.value)-(+b.value);});
+    opts.forEach(function(o){s.appendChild(o);});
+    s.setAttribute('data-bsp-prices','1'); return true;
+  }
+  var n=0,t=setInterval(function(){ var a=fill('IDX-lp'),b=fill('IDX-hp'); if((a&&b)||++n>40) clearInterval(t); },250);
+})();

@@ -1282,3 +1282,7 @@ html body.bsp-idx .select2-container.select2-container--open .select2-dropdown .
 html body.bsp-idx .select2-container.select2-container--open .select2-dropdown :is(.select2-results__option--highlighted,.select2-results__option[aria-selected=true]),
 html body.bsp-idx .select2-container.select2-container--open .select2-dropdown :is(.select2-results__option--highlighted,.select2-results__option[aria-selected=true]) *{background:#182646!important;color:#F4E2B0!important;-webkit-text-fill-color:#F4E2B0!important}
 html body.bsp-idx .select2-container.select2-container--open .select2-dropdown :is(.select2-results__option,.IDX-custom-form-element__label){font-weight:500!important;font-size:15px!important}
+html body.bsp-idx .select2-container.select2-container--open .select2-dropdown{min-width:170px!important}
+html body.bsp-idx .select2-container.select2-container--open .select2-dropdown :is(.select2-results__option,.IDX-custom-form-element__label,.IDX-custom-form-element__group){white-space:nowrap!important}
+html body.bsp-idx .select2-container.select2-container--open .select2-dropdown .select2-results__option{padding:6px 12px!important}
+html body.bsp-idx .select2-container.select2-container--open .select2-dropdown .select2-results__options{max-height:300px!important;overflow-y:auto!important}
