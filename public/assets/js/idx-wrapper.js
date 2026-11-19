@@ -864,3 +864,153 @@
   if(!isMapPage()||tries>24||(leafletMap&&(!phone()||document.body.classList.contains('bsp-map-fit')))) clearInterval(boot);
  },400);
 })();
+
+
+/* Advanced Search: a short main row. Other IDX fields stay in the form, behind More filters.
+   Names and the results action are unchanged, so the search still submits. */
+(()=>{'use strict';
+ if(!/\/idx\/search\/advanced\/?$/i.test(location.pathname)) return;
+ if(window.__bspAdvSearch) return;
+ window.__bspAdvSearch=true;
+ const MAIN=[
+  [/city,\s*county,\s*postal/i,'where'],
+  [/^min(?:imum)?\s+price$/i,'price'],
+  [/^max(?:imum)?\s+price$/i,'price'],
+  [/^bedrooms?$/i,'beds'],
+  [/^bathrooms?$/i,'baths']
+ ];
+ const LISTING=[/price reduction/i,/^status$/i,/days listed/i,/^refinement$/i,/per page/i,/^sort by$/i];
+ let building=false;
+ function labelOf(group){
+  const lab=group.querySelector('label, legend');
+  return lab?(lab.textContent||'').replace(/\s+/g,' ').trim():'';
+ }
+ function slot(group){
+  const text=labelOf(group);
+  if(!text) return '';
+  for(const pair of MAIN){ if(pair[0].test(text)) return pair[1]; }
+  return '';
+ }
+ function section(title){
+  const sec=document.createElement('section');
+  sec.className='bsp-adv-section';
+  const h=document.createElement('h2');
+  h.textContent=title;
+  const grid=document.createElement('div');
+  grid.className='bsp-adv-grid';
+  sec.append(h, grid);
+  return {sec, grid};
+ }
+ function build(){
+  const form=document.getElementById('IDX-searchForm');
+  if(!form || form.dataset.bspAdv==='1') return false;
+  const groups=[...form.querySelectorAll('.IDX-control-group')].filter(g=>!g.parentElement||!g.parentElement.closest('.IDX-control-group'));
+  if(!groups.some(g=>slot(g)==='where') || !groups.some(g=>slot(g)==='beds')) return false;
+  const shell=document.createElement('div');
+  shell.className='bsp-adv';
+  const main=document.createElement('div');
+  main.className='bsp-adv-main';
+  const where=document.createElement('div'); where.className='bsp-adv-where';
+  const price=document.createElement('div'); price.className='bsp-adv-price';
+  const beds=document.createElement('div'); beds.className='bsp-adv-beds';
+  const baths=document.createElement('div'); baths.className='bsp-adv-baths';
+  const go=document.createElement('div'); go.className='bsp-adv-go';
+  main.append(where, price, beds, baths, go);
+  const more=document.createElement('button');
+  more.type='button';
+  more.className='bsp-adv-more';
+  more.setAttribute('aria-expanded','false');
+  more.setAttribute('aria-controls','bsp-adv-panel');
+  more.textContent='More filters';
+  const panel=document.createElement('div');
+  panel.id='bsp-adv-panel';
+  panel.className='bsp-adv-panel';
+  panel.hidden=true;
+  const homeSec=section('Home details');
+  const listSec=section('Listing');
+  panel.append(homeSec.sec, listSec.sec);
+  const home=[];
+  const listed=[];
+  groups.forEach(group=>{
+   const kind=slot(group);
+   if(kind==='where') where.appendChild(group);
+   else if(kind==='price') price.appendChild(group);
+   else if(kind==='beds') beds.appendChild(group);
+   else if(kind==='baths') baths.appendChild(group);
+   else if(LISTING.some(re=>re.test(labelOf(group)))) listed.push(group);
+   else if(labelOf(group)) home.push(group);
+  });
+  home.forEach(g=>homeSec.grid.appendChild(g));
+  listed.forEach(g=>listSec.grid.appendChild(g));
+  if(!home.length) homeSec.sec.hidden=true;
+  if(!listed.length) listSec.sec.hidden=true;
+  shell.append(main, more, panel);
+  form.insertBefore(shell, form.firstChild);
+  form.classList.add('bsp-adv-on');
+  form.dataset.bspAdv='1';
+  tuckAdvanced();
+  const submits=[...form.querySelectorAll('button, input[type="submit"]')].filter(el=>{
+   const type=(el.getAttribute('type')||(el.tagName==='BUTTON'?'submit':'')).toLowerCase();
+   return type==='submit';
+  });
+  const labeled=submits.filter(el=>/search/i.test((el.value||el.textContent||'')));
+  const pool=labeled.length?labeled:submits;
+  const primary=pool.find(el=>!el.classList.contains('IDX-hidden-desktop'))||pool[0];
+  if(primary){
+   submits.forEach(el=>{ if(el!==primary) el.classList.add('bsp-adv-spare-submit'); });
+   primary.classList.remove('IDX-hidden-mobile','IDX-hidden-desktop');
+   go.appendChild(primary);
+  }
+  more.addEventListener('click',()=>{
+   const open=panel.hidden;
+   panel.hidden=!open;
+   more.setAttribute('aria-expanded', String(open));
+   more.textContent=open?'Hide filters':'More filters';
+  });
+  form.querySelectorAll('.IDX-row-content, .IDX-location-group, .IDX-control-group').forEach(row=>{
+   if(row.closest('.bsp-adv')) return;
+   if(!row.querySelector('select, textarea, input:not([type="hidden"]), button')) row.classList.add('bsp-adv-empty');
+  });
+  return true;
+ }
+ function tuckAdvanced(){
+  const panel=document.getElementById('bsp-adv-panel');
+  if(!panel) return;
+  const advanced=document.getElementById('IDX-advancedSearchFields');
+  const header=document.querySelector('.IDX-advanced-fields__header');
+  if((!advanced || panel.contains(advanced)) && (!header || panel.contains(header))) return;
+  let sec=panel.querySelector('.bsp-adv-section--extra');
+  if(!sec){
+   sec=document.createElement('section');
+   sec.className='bsp-adv-section bsp-adv-section--extra';
+   panel.appendChild(sec);
+  }
+  if(header && !panel.contains(header)) sec.insertBefore(header, sec.firstChild);
+  if(advanced && !panel.contains(advanced)) sec.appendChild(advanced);
+  const title=(header||advanced||sec).querySelector('.IDX-advanced-fields__title');
+  if(title && !title.dataset.bspTitle){
+   title.dataset.bspTitle='1';
+   title.textContent='Property';
+  }
+ }
+ function kick(){
+  if(building) return;
+  building=true;
+  try{ build(); tuckAdvanced(); }catch(e){}
+  building=false;
+ }
+ kick();
+ document.addEventListener('DOMContentLoaded', kick);
+ window.addEventListener('load', kick);
+ let tries=0;
+ const timer=setInterval(()=>{
+  tries+=1;
+  kick();
+  const form=document.getElementById('IDX-searchForm');
+  const advanced=document.getElementById('IDX-advancedSearchFields');
+  const header=document.querySelector('.IDX-advanced-fields__header');
+  const panel=form && form.querySelector('#bsp-adv-panel');
+  const tucked=(!advanced || (panel && panel.contains(advanced))) && (!header || (panel && panel.contains(header)));
+  if((form && form.dataset.bspAdv==='1' && tucked) || tries>24) clearInterval(timer);
+ }, 300);
+})();

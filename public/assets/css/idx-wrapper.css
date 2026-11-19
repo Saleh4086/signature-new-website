@@ -765,3 +765,86 @@ body.bsp-idx .bsp-pin-popup--compact .bsp-pin-card{width:220px}
 body.bsp-idx .bsp-pin-popup--compact .bsp-pin-card__photo img{height:72px}
 body.bsp-idx .bsp-pin-popup--compact .bsp-pin-card__body{padding:8px 10px 10px;gap:2px}
 body.bsp-idx .bsp-pin-popup--compact .bsp-pin-card__price{font-size:1rem!important}
+
+
+/* Results-page clusters. IDX paints .marker-cluster white, and the results-card
+   color rule forces the count to #EEF1F8, so the number disappears.
+   These match Map Search's stock green clusters.
+   The live IDX wrapper CSS URL still uses ?v=20261112-map-pins in IDX settings.
+   Bump that query (this template now uses ?v=20261119-search) or the old sheet stays cached. */
+body.bsp-idx #IDX-map .marker-cluster{background-color:rgba(181,226,140,.6)}
+body.bsp-idx #IDX-map .marker-cluster div{background-color:rgba(110,204,57,.6)}
+body.bsp-idx #blackstone-idx-content #IDX-map .marker-cluster span{color:#323B40!important}
+
+/* Advanced Search: one calm row, everything else behind More filters. */
+body.bsp-idx #IDX-searchForm.bsp-adv-on{max-width:none;margin:0}
+body.bsp-idx #IDX-searchForm.bsp-adv-on .bsp-adv-empty{display:none!important}
+body.bsp-idx #IDX-searchForm.bsp-adv-on .bsp-adv-main{
+  display:grid;grid-template-columns:minmax(210px,1.15fr) minmax(390px,1.9fr) minmax(120px,.55fr) minmax(120px,.55fr) auto;
+  gap:14px 16px;align-items:end;margin:6px 0 16px;
+}
+body.bsp-idx #IDX-searchForm.bsp-adv-on .bsp-adv-price{display:grid;grid-template-columns:1fr 1fr;gap:10px;min-width:0}
+body.bsp-idx #IDX-searchForm.bsp-adv-on .bsp-adv-main .IDX-control-group,
+body.bsp-idx #IDX-searchForm.bsp-adv-on .bsp-adv-grid .IDX-control-group,
+body.bsp-idx #IDX-searchForm.bsp-adv-on .IDX-controls{
+  float:none!important;width:100%!important;max-width:none!important;min-width:0;
+  margin:0!important;padding:0!important;clear:none!important;box-sizing:border-box;
+}
+body.bsp-idx #IDX-searchForm.bsp-adv-on .select2-container{width:100%!important;max-width:100%!important}
+body.bsp-idx #IDX-searchForm.bsp-adv-on .IDX-control-group label,
+body.bsp-idx #IDX-searchForm.bsp-adv-on .IDX-control-group legend{
+  display:block;margin:0 0 6px!important;
+  font:600 .72rem/1.3 var(--sans),Inter,sans-serif!important;
+  letter-spacing:.08em;text-transform:uppercase;color:#C5CDDE!important;
+}
+body.bsp-idx #IDX-searchForm.bsp-adv-on .bsp-adv-go :is(button,input[type=submit]){
+  box-sizing:border-box;width:100%;min-width:148px;min-height:52px!important;margin:0!important;padding:0 28px!important;
+  border-radius:999px!important;border:1px solid #D9B970!important;
+  background:linear-gradient(135deg,#F4E2B0,#D9B970)!important;color:#141A2E!important;-webkit-text-fill-color:#141A2E!important;
+  font:600 1rem/1 var(--sans),Inter,sans-serif!important;letter-spacing:.06em;text-transform:uppercase;cursor:pointer;
+}
+body.bsp-idx #IDX-searchForm.bsp-adv-on .bsp-adv-go :is(button,input[type=submit]):hover{background:#F4E2B0!important}
+body.bsp-idx #IDX-searchForm.bsp-adv-on .bsp-adv-more{
+  display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:44px;margin:0 0 4px;padding:0 18px;
+  border-radius:999px;border:1px solid rgba(217,185,112,.55)!important;background:transparent!important;
+  color:#F4E2B0!important;-webkit-text-fill-color:#F4E2B0!important;
+  font:600 .78rem/1 var(--sans),Inter,sans-serif!important;letter-spacing:.08em;text-transform:uppercase;cursor:pointer;
+}
+body.bsp-idx #IDX-searchForm.bsp-adv-on .bsp-adv-more:hover{border-color:#F4E2B0!important;background:#17234b!important}
+body.bsp-idx #IDX-searchForm.bsp-adv-on .bsp-adv-more:focus-visible,
+body.bsp-idx #IDX-searchForm.bsp-adv-on .bsp-adv-go :is(button,input):focus-visible{outline:2px solid #F4E2B0;outline-offset:3px}
+body.bsp-idx #IDX-searchForm.bsp-adv-on .bsp-adv-spare-submit{display:none!important}
+body.bsp-idx #IDX-searchForm.bsp-adv-on .bsp-adv-panel{margin-top:8px;padding-top:4px;border-top:1px solid rgba(217,185,112,.28)}
+body.bsp-idx #IDX-searchForm.bsp-adv-on .bsp-adv-panel[hidden]{display:none!important}
+body.bsp-idx #IDX-searchForm.bsp-adv-on .bsp-adv-section{margin:18px 0 6px}
+body.bsp-idx #IDX-searchForm.bsp-adv-on .bsp-adv-section h2{
+  margin:0 0 12px!important;font-family:var(--serif),"Cormorant Garamond",serif!important;
+  font-size:1.45rem!important;font-weight:600!important;letter-spacing:.01em;color:#F4E2B0!important;
+}
+body.bsp-idx #IDX-searchForm.bsp-adv-on .bsp-adv-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px 18px}
+@media(max-width:900px){
+  body.bsp-idx #IDX-searchForm.bsp-adv-on .bsp-adv-main{grid-template-columns:1fr 1fr}
+  body.bsp-idx #IDX-searchForm.bsp-adv-on .bsp-adv-where,
+  body.bsp-idx #IDX-searchForm.bsp-adv-on .bsp-adv-go{grid-column:1 / -1}
+}
+body.bsp-idx #IDX-searchForm.bsp-adv-on .IDX-advanced-fields__title{
+  margin:0 0 12px!important;font-family:var(--serif),"Cormorant Garamond",serif!important;
+  font-size:1.45rem!important;font-weight:600!important;color:#F4E2B0!important;text-transform:none!important;
+}
+body.bsp-idx #IDX-searchForm.bsp-adv-on .IDX-advanced-fields__header{margin:18px 0 0;padding:0}
+body.bsp-idx #IDX-searchForm.bsp-adv-on #IDX-advancedFieldsMod-1{
+  display:grid!important;grid-template-columns:1fr 1fr;gap:14px 18px;width:auto!important;float:none!important;
+}
+body.bsp-idx #IDX-searchForm.bsp-adv-on .IDX-advancedSearchColumn{display:contents!important;float:none!important;width:auto!important}
+body.bsp-idx #IDX-searchForm.bsp-adv-on .IDX-advancedPair,
+body.bsp-idx #IDX-searchForm.bsp-adv-on .IDX-advancedWrap{float:none!important;width:auto!important;max-width:none!important;min-width:0}
+body.bsp-idx #IDX-searchForm.bsp-adv-on .bsp-adv-price :is(.select2-chosen,.select2-selection__rendered){
+  overflow:hidden!important;text-overflow:clip!important;white-space:nowrap!important;
+}
+@media(max-width:560px){
+  body.bsp-idx #IDX-searchForm.bsp-adv-on .bsp-adv-main,
+  body.bsp-idx #IDX-searchForm.bsp-adv-on .bsp-adv-price,
+  body.bsp-idx #IDX-searchForm.bsp-adv-on .bsp-adv-grid,
+  body.bsp-idx #IDX-searchForm.bsp-adv-on #IDX-advancedFieldsMod-1{grid-template-columns:1fr}
+  body.bsp-idx #IDX-searchForm.bsp-adv-on .bsp-adv-more{width:100%}
+}
