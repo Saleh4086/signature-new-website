@@ -1055,3 +1055,169 @@ body.bsp-idx #blackstone-idx-content .idx-results__header{
 body.bsp-idx #blackstone-idx-content #idx-results-header :is(h4,.idx-results-total__heading){
   color:#F4E2B0!important;margin:0!important;
 }
+
+
+/* IDX-ALIGNMENT-AUDIT-20261118 ------------------------------------------------
+   Phone/desktop alignment + contrast pass: nothing clipped at the right edge,
+   no light-gray panels on the navy theme, no light-on-light text. CSS only. */
+
+/* 1. Listing details top row: Back + two round arrows only on phones.
+   IDX ships a second, desktop-only "Previous Listing" pill (.IDX-hidden-mobile). Our ID rule
+   re-showed it and pushed "Previous Lis…" past the right edge. */
+@media (max-width:767px){
+ body.bsp-idx #blackstone-idx-content #IDX-detailsTopNav :is(.IDX-hidden-mobile,#IDX-detailsTopNewSearch,#IDX-detailsTopNavPrev.IDX-hidden-mobile){display:none!important}
+ body.bsp-idx #blackstone-idx-content #IDX-detailsTopNav{box-sizing:border-box!important;width:100%!important;max-width:100%!important;overflow:hidden!important;padding-left:0!important;padding-right:0!important}
+ body.bsp-idx #blackstone-idx-content #IDX-detailsTopNav #IDX-searchControls{flex:0 0 auto!important;gap:8px!important}
+ body.bsp-idx #blackstone-idx-content #IDX-backToResults{flex:1 1 0!important;min-width:0!important;max-width:none!important;overflow:hidden!important;text-overflow:ellipsis}
+ body.bsp-idx #blackstone-idx-content :is(#IDX-detailsTopNavPrev,#IDX-detailsTopNavNext){flex:0 0 44px!important;overflow:hidden!important;font-size:0!important;line-height:0!important}
+ body.bsp-idx #blackstone-idx-content #IDX-detailsTopNav ::after,
+ body.bsp-idx #blackstone-idx-content #IDX-detailsTopNav ::before{content:none!important}
+}
+/* Desktop: transparent nav strip (was IDX gray-green #323B40) and no blue "|" dividers on pills. */
+body.bsp-idx #blackstone-idx-content #IDX-detailsTopNav{background:transparent!important;border:0!important;box-shadow:none!important}
+body.bsp-idx #blackstone-idx-content :is(#IDX-detailsTopNav,#IDX-detailsDescriptionActions,#IDX-searchControls,.IDX-inline-buttons) :is(.IDX-btn,a)::after{content:none!important;display:none!important}
+/* Stray blue "|" dividers IDX draws after tooltip-wrapped buttons. */
+body.bsp-idx #blackstone-idx-content .IDX-tooltip-wrapper::after{content:none!important;display:none!important}
+
+/* 2. Photos button: no light strip around it. */
+body.bsp-idx #blackstone-idx-content :is(#IDX-detailsSlidesActions,#IDX-detailsSlidesActions .IDX-inline-buttons,#IDX-photoGalleryLinkDescription){
+ background:transparent!important;border:0!important;box-shadow:none!important;
+}
+body.bsp-idx #blackstone-idx-content #IDX-photoGalleryLinkDescription{color:#EEF1F8!important}
+
+/* 3. Details header card: one clean card. Save/Print live inside it, never sticky or dark-boxed
+   (the old sticky bar made a darker box inside the card and let "New Search" peek out). */
+@media (max-width:767px){
+ body.bsp-idx #blackstone-idx-content #IDX-detailsHeader{position:static!important;z-index:auto!important;box-sizing:border-box!important;overflow:hidden!important}
+ body.bsp-idx #blackstone-idx-content #IDX-detailsHeaderActions{
+  position:static!important;bottom:auto!important;z-index:auto!important;background:transparent!important;
+  backdrop-filter:none!important;-webkit-backdrop-filter:none!important;border:0!important;
+  padding:8px 0 0!important;margin:0!important;box-sizing:border-box!important;
+ }
+ body.bsp-idx #blackstone-idx-content #IDX-detailsHeaderActions .IDX-inline-buttons{gap:8px!important;justify-content:center!important;margin:0!important;padding:0!important}
+ body.bsp-idx #blackstone-idx-content #IDX-detailsHeaderActions .IDX-btn{flex:1 1 0!important;min-width:0!important;min-height:46px!important;padding:8px 12px!important}
+ body.bsp-idx #blackstone-idx-content :is(#IDX-detailsContactLinks,#IDX-detailsWrapper,#IDX-detailsMain){padding-bottom:12px!important}
+ /* header contents sit inside the card padding (IDX's negative row margins pushed Save/Print to the edge) */
+ body.bsp-idx #blackstone-idx-content #IDX-detailsHeader .IDX-row{margin-left:0!important;margin-right:0!important}
+ body.bsp-idx #blackstone-idx-content #IDX-detailsHeader :is(#IDX-detailsAddress,#IDX-detailsHeaderActions){padding-left:0!important;padding-right:0!important}
+ body.bsp-idx #blackstone-idx-content #IDX-detailsHeader #IDX-detailsAddressStreet{padding-left:0!important}
+}
+
+/* 4. Accordion panels: navy headers, readable bodies, gold chevrons. */
+body.bsp-idx #blackstone-idx-content :is(.IDX-panel-heading,#IDX-leadSignupHeader,#IDX-leadLoginHeader){
+ background:#1F3158!important;background-image:none!important;color:#F4E2B0!important;-webkit-text-fill-color:#F4E2B0!important;
+ border:0!important;border-bottom:1px solid rgba(217,185,112,.28)!important;border-radius:12px 12px 0 0;
+}
+body.bsp-idx #blackstone-idx-content .IDX-panel-heading :is(a,span,h1,h2,h3,h4,h5,div,button){color:#F4E2B0!important;-webkit-text-fill-color:#F4E2B0!important;background:transparent!important}
+body.bsp-idx #blackstone-idx-content .IDX-panel-heading :is(svg,.IDX-icon,i,.IDX-accordion-icon,[class*=chevron],[class*=caret],[class*=arrow]){color:#D9B970!important;fill:#D9B970!important;stroke:#D9B970!important}
+body.bsp-idx #blackstone-idx-content .IDX-panel-heading img{filter:brightness(0) saturate(100%) invert(80%) sepia(33%) saturate(560%) hue-rotate(7deg) brightness(95%)!important}
+body.bsp-idx #blackstone-idx-content .IDX-panel-body{color:#EEF1F8!important}
+
+/* 5. Similar listings + "No listings found" + Contact title. */
+body.bsp-idx #blackstone-idx-content .bsp-similar-listings-heading,
+body.bsp-idx #blackstone-idx-content #IDX-similar-listings-title{
+ background:#1F3158!important;color:#F4E2B0!important;-webkit-text-fill-color:#F4E2B0!important;
+ border:1px solid rgba(217,185,112,.35)!important;border-bottom:0!important;border-radius:12px 12px 0 0!important;
+ box-sizing:border-box!important;text-align:center!important;
+}
+body.bsp-idx #blackstone-idx-content #IDX-similar-listings-none,
+body.bsp-idx #blackstone-idx-content .IDX-well{
+ background:#182646!important;color:#EEF1F8!important;border:1px solid rgba(217,185,112,.35)!important;border-top:0!important;
+ border-radius:0 0 12px 12px!important;box-shadow:none!important;text-align:center;
+}
+body.bsp-idx #blackstone-idx-content .IDX-contact-form__title{
+ background:#1F3158!important;color:#F4E2B0!important;-webkit-text-fill-color:#F4E2B0!important;border:1px solid rgba(217,185,112,.35)!important;border-radius:12px!important;
+}
+body.bsp-idx #blackstone-idx-content #IDX-listingHeader{background:transparent!important}
+/* Legal courtesy text under the details page: small + muted instead of body-size white. */
+body.bsp-idx #blackstone-idx-content #IDX-detailsPageContainer > div:not([id]):not([class]){
+ font-size:.78rem!important;line-height:1.55!important;color:#B9C2D8!important;margin-top:18px!important;
+}
+body.bsp-idx #blackstone-idx-content #IDX-detailsPageContainer > div:not([id]):not([class]) :is(span,p,div,b){font-size:inherit!important;line-height:inherit!important;color:inherit!important}
+body.bsp-idx #blackstone-idx-content #IDX-detailsPageContainer > div:not([id]):not([class]) img{max-height:34px;width:auto;vertical-align:middle}
+
+/* 6. Results on phones: IDX fixes each card column at 375px, so cards ran past the right edge
+   (hearts, MLS logos, pagination and the disclaimer were clipped). One fluid column instead. */
+@media (max-width:767px){
+ body.bsp-idx #blackstone-idx-content :is(.idx-results,#idx-results-content,.idx-results__content,.idx-results__listings,.idx-results__category){
+  box-sizing:border-box!important;min-width:0!important;max-width:100%!important;
+ }
+ body.bsp-idx #blackstone-idx-content :is(#idx-results-content,.idx-results__content){grid-template-columns:minmax(0,1fr)!important}
+ body.bsp-idx #blackstone-idx-content .idx-results__listings{width:100%!important}
+ body.bsp-idx #blackstone-idx-content .idx-results__category{grid-template-columns:minmax(0,1fr)!important;justify-content:stretch!important;width:100%!important}
+ body.bsp-idx #blackstone-idx-content .idx-results__listing{width:100%!important;max-width:100%!important}
+ body.bsp-idx #blackstone-idx-content .idx-listing-card{box-sizing:border-box!important}
+}
+/* Pagination: readable on navy, current page gold. */
+body.bsp-idx #blackstone-idx-content .idx-pagination{flex-wrap:wrap!important;justify-content:center!important;gap:6px!important;padding:0!important;max-width:100%!important}
+body.bsp-idx #blackstone-idx-content .idx-pagination li{margin:0!important;border-color:rgba(217,185,112,.35)!important}
+body.bsp-idx #blackstone-idx-content .idx-pagination a{color:#EEF1F8!important}
+body.bsp-idx #blackstone-idx-content .idx-pagination :is(.IDX-active,.active,[aria-current]){background:linear-gradient(135deg,#F4E2B0,#D9B970)!important;border-color:#D9B970!important}
+body.bsp-idx #blackstone-idx-content .idx-pagination :is(.IDX-active,.active,[aria-current]) a,
+body.bsp-idx #blackstone-idx-content .idx-pagination a[aria-current]{color:#141A2E!important}
+body.bsp-idx #blackstone-idx-content .idx-pagination li.idx-pagination--borderless{border-color:transparent!important}
+/* Wide legal text never exceeds the screen. */
+body.bsp-idx #blackstone-idx-content :is(.IDX-disclaimer,[class*=disclaimer],#IDX-disclaimer,.idx-disclaimer){max-width:100%!important;box-sizing:border-box!important;overflow-wrap:anywhere}
+/* Result cards: always a dark fade behind the price/address so text reads over bright or grey "no photo" images. */
+body.bsp-idx #blackstone-idx-content .idx-listing-card__content{
+ background:linear-gradient(to top,rgba(8,13,30,.9) 0%,rgba(8,13,30,.62) 60%,rgba(8,13,30,0) 100%)!important;
+ border-radius:0 0 inherit inherit;
+}
+
+/* 7. Results filter sheet: navy sheet, readable title, matching outline dropdown buttons.
+   IDX paints the sheet white; only "Any Price" was themed, so Beds/Baths/More Filters were light-on-gold. */
+body.bsp-idx #blackstone-idx-content #idx-results-refinement{
+ background:#101A36!important;border-top:1px solid rgba(217,185,112,.45)!important;color:#EEF1F8!important;box-sizing:border-box!important;
+}
+body.bsp-idx #blackstone-idx-content #idx-results-refinement :is(.idx-results-refinement__title,#idx-results-refinement-title){color:#F4E2B0!important;-webkit-text-fill-color:#F4E2B0!important;font-weight:600!important;letter-spacing:.04em}
+body.bsp-idx #blackstone-idx-content #idx-results-refinement :is(#idx-refinement-price,#idx-refinement-bd,#idx-refinement-tb,#idx-refinement-more){
+ background:#182646!important;background-image:none!important;color:#F4E2B0!important;
+ border:1px solid rgba(217,185,112,.55)!important;
+}
+body.bsp-idx #blackstone-idx-content #idx-results-refinement :is(#idx-refinement-price,#idx-refinement-bd,#idx-refinement-tb,#idx-refinement-more) :is(span,i,svg){color:#F4E2B0!important;-webkit-text-fill-color:#F4E2B0!important}
+body.bsp-idx #blackstone-idx-content #idx-results-refinement #IDX-saveSearch{
+ background:#182646!important;background-image:none!important;color:#F4E2B0!important;border:1px solid rgba(217,185,112,.55)!important;
+ display:inline-flex!important;align-items:center!important;justify-content:center!important;line-height:1.2!important;padding-top:10px!important;padding-bottom:10px!important;
+}
+
+/* 8. Search pages (Advanced / Basic / Address / Listing ID): drop IDX's blue tab strip, theme the
+   bottom Search bar, keep it from covering the last fields. */
+body.bsp-idx #blackstone-idx-content .IDX-precision-navbar{background:transparent!important;border:0!important;box-shadow:none!important;margin:0 0 10px!important;padding:0!important}
+body.bsp-idx #blackstone-idx-content #IDX-action-buttons{
+ background:rgba(11,18,40,.97)!important;border-top:1px solid rgba(217,185,112,.35)!important;box-sizing:border-box!important;
+ padding:10px 14px calc(10px + env(safe-area-inset-bottom,0px))!important;height:auto!important;min-height:0!important;
+ display:flex!important;align-items:center!important;justify-content:center!important;gap:10px!important;
+}
+body.bsp-idx #blackstone-idx-content #IDX-action-buttons :is(button,.IDX-btn,input[type=submit]){
+ flex:1 1 auto!important;max-width:520px!important;width:100%!important;margin:0!important;border-radius:999px!important;
+ border:1px solid #D9B970!important;background:linear-gradient(135deg,#F4E2B0,#D9B970)!important;color:#141A2E!important;
+ min-height:46px!important;font-weight:600!important;
+}
+body.bsp-idx #blackstone-idx-content:has(#IDX-action-buttons) #IDX-searchPageWrapper{padding-bottom:96px!important}
+body.bsp-idx #blackstone-idx-content #IDX-action-buttons:not(:has(*)){display:none!important}
+/* Listing-ID "Add" pill: readable outline, not disabled gray. */
+body.bsp-idx #blackstone-idx-content #IDX-addListingID,
+body.bsp-idx #blackstone-idx-content :is(.IDX-addMore,.IDX-add-btn,.IDX-addListingBtn){background:#182646!important;color:#F4E2B0!important;border:1px solid rgba(217,185,112,.55)!important}
+/* Ticker/header never makes the page scroll sideways. */
+html,body.bsp-idx{overflow-x:clip}
+body.bsp-idx > .bsp-chrome .tick{max-width:100%!important;box-sizing:border-box!important}
+
+/* 9. IDX registration pop-up (jQuery UI dialog) — navy card instead of an unstyled white box. */
+body.bsp-idx .ui-dialog{
+ background:#101A36!important;color:#EEF1F8!important;border:1px solid rgba(217,185,112,.45)!important;border-radius:16px!important;
+ box-shadow:0 24px 60px -20px rgba(0,0,0,.8)!important;font-family:var(--sans,'Inter',system-ui,sans-serif)!important;overflow:hidden!important;box-sizing:border-box!important;
+ max-width:calc(100vw - 24px)!important;
+}
+body.bsp-idx .ui-dialog :is(.ui-dialog-content,#IDX-registrationContent,#IDX-registration){background:transparent!important;color:#EEF1F8!important;font-family:inherit!important}
+body.bsp-idx .ui-dialog :is(*){font-family:inherit!important}
+body.bsp-idx .ui-dialog .ui-dialog-titlebar{background:#1F3158!important;border:0!important;border-bottom:1px solid rgba(217,185,112,.3)!important;border-radius:0!important;color:#F4E2B0!important}
+body.bsp-idx .ui-dialog .ui-dialog-title{color:#F4E2B0!important;font-weight:600!important}
+body.bsp-idx .ui-dialog :is(a,a:visited){color:#F4E2B0!important}
+body.bsp-idx .ui-dialog :is(input[type=text],input[type=email],input[type=tel],input:not([type]),textarea){
+ background:#F7F4EE!important;color:#141A2E!important;border:1px solid rgba(217,185,112,.6)!important;border-radius:10px!important;box-sizing:border-box!important;width:100%!important;min-height:38px!important;padding:6px 10px!important;margin:4px 0 10px!important;
+}
+body.bsp-idx .ui-dialog :is(input[type=submit],button:not(.ui-dialog-titlebar-close),.IDX-btn,#IDX-registrationSubmit){
+ background:linear-gradient(135deg,#F4E2B0,#D9B970)!important;color:#141A2E!important;border:1px solid #D9B970!important;border-radius:999px!important;min-height:44px!important;font-weight:600!important;cursor:pointer;
+}
+body.bsp-idx .ui-dialog .ui-dialog-titlebar-close{background:transparent!important;border:0!important;color:#F4E2B0!important}
+body.bsp-idx .ui-dialog .ui-dialog-titlebar-close .ui-icon{filter:brightness(4)!important}
