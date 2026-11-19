@@ -1241,3 +1241,16 @@ body.bsp-idx .ui-dialog :is(input[type=submit],button:not(.ui-dialog-titlebar-cl
 }
 body.bsp-idx .ui-dialog .ui-dialog-titlebar-close{background:transparent!important;border:0!important;color:#F4E2B0!important}
 body.bsp-idx .ui-dialog .ui-dialog-titlebar-close .ui-icon{filter:brightness(4)!important}
+
+/* Results filter dropdowns (Price, Beds, Baths, More Filters): navy panel, readable labels (2026-11-19) */
+body.bsp-idx #blackstone-idx-content #idx-results-refinement .idx-dropdown__menu{background:#182646!important;border:1px solid rgba(244,226,176,.35)!important;border-radius:12px!important;box-shadow:0 12px 30px rgba(0,0,0,.45)!important;padding:14px!important;min-width:260px}
+body.bsp-idx #blackstone-idx-content #idx-results-refinement .idx-dropdown__menu :is(label,legend,.idx-form__label,p,span:not(.select2-selection__choice__remove)){color:#F4E2B0!important;-webkit-text-fill-color:#F4E2B0!important;opacity:1!important}
+body.bsp-idx #blackstone-idx-content #idx-results-refinement .idx-dropdown__menu :is(input,select,.select2-selection){background:#fff!important;color:#14203A!important;-webkit-text-fill-color:#14203A!important;border:1px solid #C9A961!important;border-radius:8px!important;min-height:40px}
+body.bsp-idx #blackstone-idx-content #idx-results-refinement .idx-dropdown__menu .select2-selection__rendered{background:transparent!important;color:#14203A!important;-webkit-text-fill-color:#14203A!important}
+body.bsp-idx #blackstone-idx-content #idx-results-refinement .idx-dropdown__menu .select2-selection__choice{background:#182646!important;border:1px solid #C9A961!important;color:#F4E2B0!important;-webkit-text-fill-color:#F4E2B0!important;border-radius:14px!important;padding:2px 10px!important}
+body.bsp-idx #blackstone-idx-content #idx-results-refinement .idx-dropdown__menu .select2-selection__choice *{color:#F4E2B0!important;-webkit-text-fill-color:#F4E2B0!important}
+body.bsp-idx #blackstone-idx-content #idx-results-refinement .idx-dropdown__menu .select2-search__field{border:0!important;background:transparent!important;min-height:0}
+body.bsp-idx .select2-dropdown{background:#fff!important;color:#14203A!important}
+body.bsp-idx .select2-results__option{color:#14203A!important;-webkit-text-fill-color:#14203A!important}
+body.bsp-idx .select2-results__option--highlighted{background:#182646!important;color:#F4E2B0!important;-webkit-text-fill-color:#F4E2B0!important}
+body.bsp-idx #blackstone-idx-content #idx-results-refinement .idx-dropdown__menu .select2-selection--single :is(span,.select2-selection__rendered){color:#14203A!important;-webkit-text-fill-color:#14203A!important}
