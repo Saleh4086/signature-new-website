@@ -151,33 +151,32 @@
 
   // home search box → map search page
   $$('.chip[data-q]').forEach(c=>c.addEventListener('click',()=>{const i=$('#hq');if(i){i.value=c.dataset.q;$$('.chip[data-q]').forEach(x=>x.classList.toggle('on',x===c))}}));
-  /* Home hero: city chips + Search open live MLS scoped to East Bay zips.
-     IDX csv_city alone is ignored on this account and returns statewide/LA luxury
-     results; pairing csv_city with csv_zipcode keeps Discovery Bay etc. local. */
-  const MLS_RESULTS='https://blackstonesignatureproperty.idxbroker.com/idx/results/listings';
+  /* Home hero: city chips + Search open Map Search on that city.
+     /idx/map/mapsearch ignores city, csv_city, zipcode, and price/beds filters.
+     centerlat, centerlong, and zoom place the viewport. Homes in view are listed. */
   const MLS_MAP='https://blackstonesignatureproperty.idxbroker.com/idx/map/mapsearch';
   const MLS_ADV='https://blackstonesignatureproperty.idxbroker.com/idx/search/advanced';
   const EAST_BAY_CITIES={
-    'discovery bay':'94505',
-    'brentwood':'94513',
-    'oakley':'94561',
-    'antioch':'94509,94531',
-    'concord':'94518,94519,94520,94521',
-    'walnut creek':'94595,94596,94597,94598',
-    'danville':'94506,94526',
-    'pittsburg':'94565',
-    'byron':'94514',
-    'bay point':'94565',
-    'oakland':'94601,94602,94605,94606,94607,94608,94609,94610,94611,94612,94618,94619',
-    'livermore':'94550,94551',
-    'pleasanton':'94566,94588',
-    'san ramon':'94582,94583',
-    'lafayette':'94549',
-    'orinda':'94563',
-    'martinez':'94553',
-    'clayton':'94517',
-    'alamo':'94507',
-    'moraga':'94556'
+    'discovery bay':[37.9085,-121.6002,13],
+    'brentwood':[37.9319,-121.6958,13],
+    'oakley':[37.9974,-121.7125,13],
+    'antioch':[38.0049,-121.8058,13],
+    'concord':[37.978,-122.0311,13],
+    'walnut creek':[37.9101,-122.0652,13],
+    'danville':[37.8216,-121.9999,13],
+    'pittsburg':[38.0280,-121.8847,13],
+    'byron':[37.8672,-121.6380,13],
+    'bay point':[38.0291,-121.9616,13],
+    'oakland':[37.8044,-122.2712,12],
+    'livermore':[37.6819,-121.7680,13],
+    'pleasanton':[37.6624,-121.8747,13],
+    'san ramon':[37.7799,-121.9780,13],
+    'lafayette':[37.8858,-122.1180,13],
+    'orinda':[37.8771,-122.1797,13],
+    'martinez':[38.0194,-122.1341,13],
+    'clayton':[37.9410,-121.9358,13],
+    'alamo':[37.8502,-122.0322,13],
+    'moraga':[37.8349,-122.1297,13]
   };
   const EAST_BAY_ALIASES={
     discovbay:'discovery bay', discobay:'discovery bay', discoverybay:'discovery bay',
@@ -189,54 +188,55 @@
     return String(raw||'').toLowerCase().replace(/[^a-z0-9\s]/g,' ').replace(/\s+/g,' ').trim();
   }
   function compactKey(raw){ return normCityKey(raw).replace(/\s+/g,''); }
+  function place(canon){
+    const p=EAST_BAY_CITIES[canon];
+    const city=canon.split(' ').map(w=>w.charAt(0).toUpperCase()+w.slice(1)).join(' ');
+    return {city, lat:p[0], lng:p[1], zoom:p[2], canon};
+  }
   function resolveEastBay(raw){
     let key=normCityKey(raw);
     if(!key) return null;
     key=key.replace(/\bpay\b/g,'bay').replace(/\bbea\b/g,'bay');
-    const pretty=canon=>canon.split(' ').map(w=>w.charAt(0).toUpperCase()+w.slice(1)).join(' ');
-    if(EAST_BAY_CITIES[key]) return {city:pretty(key), zips:EAST_BAY_CITIES[key], canon:key};
+    if(EAST_BAY_CITIES[key]) return place(key);
     const alias=EAST_BAY_ALIASES[compactKey(key)]||EAST_BAY_ALIASES[key]||EAST_BAY_ALIASES[compactKey(raw)];
-    if(alias && EAST_BAY_CITIES[alias]) return {city:pretty(alias), zips:EAST_BAY_CITIES[alias], canon:alias};
+    if(alias && EAST_BAY_CITIES[alias]) return place(alias);
     const compact=compactKey(key);
-    if(compact.startsWith('discov') || compact.startsWith('discover')) return {city:'Discovery Bay', zips:EAST_BAY_CITIES['discovery bay'], canon:'discovery bay'};
+    if(compact.startsWith('discov') || compact.startsWith('discover')) return place('discovery bay');
     if(compact.length>=4){
       for(const canon of Object.keys(EAST_BAY_CITIES)){
         const cc=compactKey(canon);
-        if(cc.startsWith(compact) || compact.startsWith(cc)) return {city:pretty(canon), zips:EAST_BAY_CITIES[canon], canon};
+        if(cc.startsWith(compact) || compact.startsWith(cc)) return place(canon);
       }
       const dist=(a,b)=>{const m=a.length,n=b.length; if(Math.abs(m-n)>2)return 99; let prev=[...Array(n+1).keys()]; for(let i=1;i<=m;i++){const cur=[i]; for(let j=1;j<=n;j++){const cost=a[i-1]===b[j-1]?0:1; cur[j]=Math.min(prev[j]+1,cur[j-1]+1,prev[j-1]+cost);} prev=cur;} return prev[n];};
       for(const canon of Object.keys(EAST_BAY_CITIES)){
         const cc=compactKey(canon);
-        if(dist(compact,cc)<=2) return {city:pretty(canon), zips:EAST_BAY_CITIES[canon], canon};
+        if(dist(compact,cc)<=2) return place(canon);
       }
     }
     return null;
   }
-  function mlsCityUrl(city, zips){
-    let u=MLS_RESULTS+'?csv_city='+encodeURIComponent(city);
-    if(zips) u+='&csv_zipcode='+encodeURIComponent(zips);
-    return u;
+  function mlsCityUrl(hit){
+    return MLS_MAP+'?centerlat='+encodeURIComponent(hit.lat)+'&centerlong='+encodeURIComponent(hit.lng)+'&zoom='+encodeURIComponent(hit.zoom);
   }
   function goMlsCity(raw){
     const hit=resolveEastBay(raw);
-    if(hit){ location.href=mlsCityUrl(hit.city, hit.zips); return; }
+    if(hit){ location.href=mlsCityUrl(hit); return; }
     const city=String(raw||'').trim();
-    if(!city){ location.href=MLS_MAP; return; }
-    // Unknown free-text: do NOT post bare csv_city (returns LA). Use Advanced Search.
+    if(!city){ location.href=mlsCityUrl(place('discovery bay')); return; }
     location.href=MLS_ADV;
   }
   window.bspMlsGo=function(raw){
     const hit=resolveEastBay(raw);
-    if(hit){ location.href=mlsCityUrl(hit.city, hit.zips); return false; }
+    if(hit){ location.href=mlsCityUrl(hit); return false; }
     const city=String(raw||'').trim();
-    if(!city){ location.href=mlsCityUrl('Discovery Bay','94505'); return false; }
+    if(!city){ location.href=mlsCityUrl(place('discovery bay')); return false; }
     location.href=MLS_ADV; return false;
   };
   $$('.chip[data-mls-city]').forEach(c=>c.addEventListener('click',e=>{
     const city=(c.dataset.mlsCity||'').trim();
     $$('.chip[data-mls-city]').forEach(x=>x.classList.toggle('on',x===c));
     const i=$('#hq'); if(i) i.value=city;
-    if(c.tagName==='A' && /csv_zipcode=/.test(c.getAttribute('href')||'')) return;
+    if(c.tagName==='A' && /[?&]centerlat=/.test(c.getAttribute('href')||'')) return;
     e.preventDefault();
     goMlsCity(city);
   }));

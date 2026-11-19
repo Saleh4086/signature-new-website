@@ -864,3 +864,623 @@
   if(!isMapPage()||tries>24||(leafletMap&&(!phone()||document.body.classList.contains('bsp-map-fit')))) clearInterval(boot);
  },400);
 })();
+
+
+/* Advanced Search: main card plus a compact filters sheet.
+   Pills write the existing IDX selects. Names, values, and the results GET stay IDX's. */
+(()=>{'use strict';
+ if(!/\/idx\/search\/advanced\/?$/i.test(location.pathname)) return;
+ if(window.__bspAdvSearch) return;
+ window.__bspAdvSearch=true;
+ const FORM_ID='IDX-searchForm';
+ let building=false;
+ let initial=null;
+
+ function labelOf(group){
+  const lab=group.querySelector('label, legend');
+  return lab?(lab.textContent||'').replace(/\s+/g,' ').trim():'';
+ }
+ function trigger(el){
+  if(!el) return;
+  try{ if(window.jQuery) window.jQuery(el).trigger('change'); }catch(e){}
+  el.dispatchEvent(new Event('change',{bubbles:true}));
+ }
+ function realOptions(select){
+  const seen=new Set();
+  const out=[];
+  [...select.options].forEach(opt=>{
+   const value=opt.value;
+   const text=(opt.text||'').replace(/\s+/g,' ').trim();
+   if(value==='' && seen.has('')) return;
+   if(value==='' && !text) { seen.add(''); out.push({value:'', text:'Any'}); return; }
+   if(seen.has(value)) return;
+   seen.add(value);
+   out.push({value, text:text||value});
+  });
+  return out;
+ }
+ function setSingle(select, value){
+  if(!select) return;
+  select.value=value;
+  if(window.jQuery){
+   try{ window.jQuery(select).val(value).trigger('change'); return; }catch(e){}
+  }
+  trigger(select);
+ }
+ function selectedMulti(select){
+  return [...select.selectedOptions].map(opt=>opt.value).filter(Boolean);
+ }
+ function setMulti(select, values){
+  const want=new Set(values);
+  [...select.options].forEach(opt=>{ opt.selected=!!opt.value && want.has(opt.value); });
+  if(window.jQuery){
+   try{ window.jQuery(select).val([...want]).trigger('change'); return; }catch(e){}
+  }
+  trigger(select);
+ }
+ function bindForm(root){
+  if(!root) return;
+  root.querySelectorAll('[name]').forEach(el=>{
+   if(!el.getAttribute('form')) el.setAttribute('form', FORM_ID);
+  });
+ }
+
+ function seg(select, limit, mode){
+  const row=document.createElement('div');
+  row.className='bsp-seg'+(mode?' bsp-seg--'+mode:'');
+  row.setAttribute('role','group');
+  let options=realOptions(select).filter(opt=>opt.value!=='' || opt.text);
+  if(limit) options=options.filter(opt=>limit.includes(opt.value));
+  options.forEach(opt=>{
+   const btn=document.createElement('button');
+   btn.type='button';
+   btn.className='bsp-seg-btn';
+   btn.dataset.value=opt.value;
+   btn.textContent=opt.text.replace(/^Any Number$/i,'Any');
+   if(opt.value==='5' && /5\+/.test(opt.text)) btn.textContent='5+';
+   btn.addEventListener('click',()=>{ setSingle(select, opt.value); paint(); });
+   row.appendChild(btn);
+  });
+  row.paint=()=>{
+   const current=select.value||'';
+   row.querySelectorAll('.bsp-seg-btn').forEach(btn=>{
+    btn.classList.toggle('is-on', btn.dataset.value===current);
+    btn.setAttribute('aria-pressed', btn.classList.contains('is-on')?'true':'false');
+   });
+  };
+  return row;
+ }
+ function tiles(select){
+  const grid=document.createElement('div');
+  grid.className='bsp-tiles';
+  const names={
+   'Single Family Residence':'House',
+   'Condominium':'Condo',
+   'Townhouse':'Townhouse',
+   'Apartment':'Apartment',
+   'Patio Home/Villa':'Villa',
+   'Manufactured Home':'Manufactured',
+   'Mobile Home':'Mobile',
+   'Duet':'Duet',
+   'Floating Homes':'Floating',
+   'Detached Leased Land':'Leased land'
+  };
+  realOptions(select).filter(opt=>opt.value).forEach(opt=>{
+   const btn=document.createElement('button');
+   btn.type='button';
+   btn.className='bsp-tile';
+   btn.dataset.value=opt.value;
+   btn.textContent=names[opt.text]||opt.text;
+   btn.addEventListener('click',()=>{
+    const current=new Set(selectedMulti(select));
+    if(current.has(opt.value)) current.delete(opt.value); else current.add(opt.value);
+    setMulti(select, [...current]);
+    paint();
+   });
+   grid.appendChild(btn);
+  });
+  grid.paint=()=>{
+   const current=new Set(selectedMulti(select));
+   grid.querySelectorAll('.bsp-tile').forEach(btn=>{
+    btn.classList.toggle('is-on', current.has(btn.dataset.value));
+    btn.setAttribute('aria-pressed', btn.classList.contains('is-on')?'true':'false');
+   });
+  };
+  return grid;
+ }
+ function checks(select){
+  const list=document.createElement('div');
+  list.className='bsp-checks';
+  realOptions(select).filter(opt=>opt.value).forEach(opt=>{
+   const row=document.createElement('label');
+   row.className='bsp-check';
+   const name=document.createElement('span');
+   name.textContent=opt.text;
+   const box=document.createElement('input');
+   box.type='checkbox';
+   box.dataset.value=opt.value;
+   box.addEventListener('change',()=>{
+    const current=new Set(selectedMulti(select));
+    if(box.checked) current.add(opt.value); else current.delete(opt.value);
+    setMulti(select, [...current]);
+    paint();
+   });
+   row.append(name, box);
+   list.appendChild(row);
+  });
+  list.paint=()=>{
+   const current=new Set(selectedMulti(select));
+   list.querySelectorAll('input').forEach(box=>{ box.checked=current.has(box.dataset.value); });
+  };
+  return list;
+ }
+ function section(title, node){
+  const sec=document.createElement('section');
+  sec.className='bsp-sheet-sec';
+  const h=document.createElement('h3');
+  h.textContent=title;
+  sec.append(h, node);
+  return sec;
+ }
+ function pair(a, b, phA, phB){
+  const wrap=document.createElement('div');
+  wrap.className='bsp-pair';
+  [a,b].forEach((el, i)=>{
+   if(!el) return;
+   el.classList.add('bsp-mini');
+   if(phA && i===0) el.placeholder=phA;
+   if(phB && i===1) el.placeholder=phB;
+   wrap.appendChild(el);
+   bindForm(el);
+  });
+  return wrap;
+ }
+
+ const painters=[];
+ function paint(){ painters.forEach(fn=>{ try{ fn(); }catch(e){} }); }
+
+ function sheetShell(){
+  const root=document.createElement('div');
+  root.className='bsp-sheet';
+  root.hidden=true;
+  const backdrop=document.createElement('button');
+  backdrop.type='button';
+  backdrop.className='bsp-sheet-backdrop';
+  backdrop.setAttribute('aria-label','Close filters');
+  const panel=document.createElement('div');
+  panel.className='bsp-sheet-panel';
+  panel.setAttribute('role','dialog');
+  panel.setAttribute('aria-modal','true');
+  panel.setAttribute('aria-labelledby','bsp-sheet-title');
+  const head=document.createElement('div');
+  head.className='bsp-sheet-head';
+  const h=document.createElement('h2');
+  h.id='bsp-sheet-title';
+  h.textContent='Filters';
+  const close=document.createElement('button');
+  close.type='button';
+  close.className='bsp-sheet-x';
+  close.textContent='Close';
+  head.append(h, close);
+  const body=document.createElement('div');
+  body.className='bsp-sheet-body';
+  const foot=document.createElement('div');
+  foot.className='bsp-sheet-foot';
+  const reset=document.createElement('button');
+  reset.type='button';
+  reset.className='bsp-sheet-reset';
+  reset.textContent='Reset all';
+  const go=document.createElement('button');
+  go.type='submit';
+  go.className='bsp-sheet-go';
+  go.setAttribute('form', FORM_ID);
+  go.textContent='See homes';
+  foot.append(reset, go);
+  panel.append(head, body, foot);
+  root.append(backdrop, panel);
+  function shut(){
+   root.hidden=true;
+   document.body.classList.remove('bsp-sheet-open');
+   const more=document.querySelector('.bsp-adv-more');
+   if(more) more.setAttribute('aria-expanded','false');
+  }
+  backdrop.addEventListener('click', shut);
+  close.addEventListener('click', shut);
+  document.addEventListener('keydown', event=>{
+   if(event.key==='Escape' && !root.hidden) shut();
+  });
+  root.open=()=>{
+   paint();
+   root.hidden=false;
+   document.body.classList.add('bsp-sheet-open');
+   const more=document.querySelector('.bsp-adv-more');
+   if(more) more.setAttribute('aria-expanded','true');
+   body.scrollTop=0;
+   close.focus();
+  };
+  root.body=body;
+  root.reset=reset;
+  root.shut=shut;
+  return root;
+ }
+
+ function snapshot(form){
+  const saved=[];
+  form.querySelectorAll('input[name], select[name], textarea[name]').forEach(el=>{
+   if(el.name==='idxID') return;
+   if(el.multiple) saved.push([el, [...el.selectedOptions].map(opt=>opt.value)]);
+   else saved.push([el, el.value]);
+  });
+  return saved;
+ }
+ function restore(saved){
+  saved.forEach(([el, value])=>{
+   if(el.multiple) setMulti(el, value.filter(Boolean));
+   else setSingle(el, value);
+  });
+  paint();
+ }
+
+ const SALE_PT='1', LEASE_PT='3';
+ let deal='sale';
+ let dealLock=false;
+ let saleLpHTML='', saleHpHTML='', typeMount=null;
+ const RENT_TYPES=['Single Family Residence','Condominium','Townhouse','Apartment'];
+ function money(n){return '$'+Number(n).toLocaleString('en-US')+(Number(n)>=10000?'+':'');}
+ function fillPrice(select, values){
+  select.innerHTML='<option value=""></option>'+values.map(n=>'<option value="'+n+'">'+money(n)+'</option>').join('');
+  select.value='';
+  trigger(select);
+ }
+ function applyPrices(){
+  const lp=document.getElementById('IDX-lp'), hp=document.getElementById('IDX-hp');
+  if(!lp||!hp) return;
+  if(!saleLpHTML){ saleLpHTML=lp.innerHTML; saleHpHTML=hp.innerHTML; }
+  if(deal==='rent'){ fillPrice(lp,[1000,1500,2000,2500,3000,4000,5000]); fillPrice(hp,[2000,2500,3000,4000,5000,7500,10000]); }
+  else { lp.innerHTML=saleLpHTML; hp.innerHTML=saleHpHTML; trigger(lp); trigger(hp); }
+  const minL=document.querySelector('label[for="IDX-lp"], #IDX-minPrice-group label');
+  const maxL=document.querySelector('label[for="IDX-hp"], #IDX-maxPrice-group label');
+  if(minL) minL.childNodes[0].nodeValue=deal==='rent'?'Min rent':'Min Price';
+  if(maxL) maxL.childNodes[0].nodeValue=deal==='rent'?'Max rent':'Max Price';
+ }
+ function rebuildTypes(){
+  const select=document.getElementById('IDX-propSubType');
+  if(!typeMount||!select) return;
+  typeMount.replaceChildren();
+  let options=realOptions(select).filter(opt=>opt.value);
+  if(deal==='rent'){
+   options=options.filter(opt=>!/leased land/i.test(opt.text));
+   const picked=RENT_TYPES.map(name=>options.find(opt=>opt.text===name)).filter(Boolean);
+   if(picked.length) options=picked;
+  }
+  const grid=document.createElement('div');
+  grid.className='bsp-tiles';
+  const names={'Single Family Residence':'House','Condominium':'Condo','Townhouse':'Townhouse','Apartment':'Apartment'};
+  options.forEach(opt=>{
+   const btn=document.createElement('button');
+   btn.type='button';
+   btn.className='bsp-tile';
+   btn.dataset.value=opt.value;
+   btn.textContent=names[opt.text]||opt.text;
+   btn.addEventListener('click',()=>{
+    const current=new Set(selectedMulti(select));
+    if(current.has(opt.value)) current.delete(opt.value); else current.add(opt.value);
+    setMulti(select, [...current]);
+    paint();
+   });
+   grid.appendChild(btn);
+  });
+  typeMount.appendChild(grid);
+  typeMount.paint=()=>{
+   const current=new Set(selectedMulti(select));
+   grid.querySelectorAll('.bsp-tile').forEach(btn=>{
+    btn.classList.toggle('is-on', current.has(btn.dataset.value));
+    btn.setAttribute('aria-pressed', btn.classList.contains('is-on')?'true':'false');
+   });
+  };
+ }
+ function adoptDeal(next, refresh){
+  const changed=refresh || deal!==next;
+  deal=next;
+  document.querySelectorAll('.bsp-mode-btn').forEach(btn=>btn.classList.toggle('is-on', btn.dataset.deal===deal));
+  if(changed){
+   applyPrices();
+   const sub=document.getElementById('IDX-propSubType');
+   if(sub) setMulti(sub, []);
+   rebuildTypes();
+   setTimeout(rebuildTypes, 800);
+   setTimeout(rebuildTypes, 1700);
+  }
+  paint();
+ }
+ function setDeal(next){
+  if(dealLock) return;
+  const pt=document.getElementById('IDX-pt');
+  const want=next==='rent'?LEASE_PT:SALE_PT;
+  const ptChanged=!!(pt && pt.value!==want);
+  dealLock=true;
+  try{
+   if(ptChanged) setSingle(pt, want);
+   adoptDeal(next, deal!==next || ptChanged);
+  }finally{ dealLock=false; }
+ }
+ function watchPt(pt){
+  const onPt=()=>{
+   if(dealLock) return;
+   dealLock=true;
+   try{ adoptDeal(pt.value===LEASE_PT?'rent':'sale', true); }
+   finally{ dealLock=false; }
+  };
+  if(window.jQuery){ try{ window.jQuery(pt).on('change', onPt); return; }catch(e){} }
+  pt.addEventListener('change', onPt);
+ }
+ function modeBar(){
+  const bar=document.createElement('div');
+  bar.className='bsp-mode';
+  bar.setAttribute('role','group');
+  bar.setAttribute('aria-label','Listing type');
+  [['sale','For Sale'],['rent','For Rent']].forEach(([id,label])=>{
+   const btn=document.createElement('button');
+   btn.type='button';
+   btn.className='bsp-mode-btn'+(id===deal?' is-on':'');
+   btn.dataset.deal=id;
+   btn.textContent=label;
+   btn.addEventListener('click',()=>setDeal(id));
+   bar.appendChild(btn);
+  });
+  return bar;
+ }
+ function build(){
+  const form=document.getElementById(FORM_ID);
+  if(!form || form.dataset.bspAdv==='1') return false;
+  const groups=[...form.querySelectorAll('.IDX-control-group')].filter(g=>!g.parentElement||!g.parentElement.closest('.IDX-control-group'));
+  const byLabel=label=>groups.find(g=>label.test(labelOf(g)));
+  const where=byLabel(/city,\s*county,\s*postal/i);
+  const minPrice=byLabel(/^min(?:imum)?\s+price$/i);
+  const maxPrice=byLabel(/^max(?:imum)?\s+price$/i);
+  const beds=byLabel(/^bedrooms?$/i);
+  const baths=byLabel(/^bathrooms?$/i);
+  if(!where || !beds) return false;
+
+  const shell=document.createElement('div');
+  shell.className='bsp-adv';
+  const intro=document.createElement('div');
+  intro.className='bsp-adv-intro';
+  const title=document.createElement('h2');
+  title.className='bsp-adv-title';
+  title.textContent='Search MLS Homes';
+  const sub=document.createElement('p');
+  sub.className='bsp-adv-sub';
+  sub.textContent='East Bay listings, by city, price, beds, and baths.';
+  intro.append(title, sub);
+  const card=document.createElement('div');
+  card.className='bsp-adv-card';
+  const main=document.createElement('div');
+  main.className='bsp-adv-main';
+  const whereSlot=document.createElement('div'); whereSlot.className='bsp-adv-where';
+  const priceSlot=document.createElement('div'); priceSlot.className='bsp-adv-price';
+  const bedsSlot=document.createElement('div'); bedsSlot.className='bsp-adv-beds';
+  const bathsSlot=document.createElement('div'); bathsSlot.className='bsp-adv-baths';
+  const goSlot=document.createElement('div'); goSlot.className='bsp-adv-go';
+  whereSlot.appendChild(where);
+  if(minPrice) priceSlot.appendChild(minPrice);
+  if(maxPrice) priceSlot.appendChild(maxPrice);
+  bedsSlot.appendChild(beds);
+  if(baths) bathsSlot.appendChild(baths);
+  main.append(whereSlot, priceSlot, bedsSlot, bathsSlot, goSlot);
+  card.appendChild(modeBar());
+  const more=document.createElement('button');
+  more.type='button';
+  more.className='bsp-adv-more';
+  more.setAttribute('aria-expanded','false');
+  more.setAttribute('aria-controls','bsp-sheet-title');
+  more.textContent='More filters';
+  card.append(main, more);
+  const alt=document.createElement('p');
+  alt.className='bsp-adv-alt';
+  alt.append(document.createTextNode('Prefer the map? '));
+  const mapLink=document.createElement('a');
+  mapLink.href='https://blackstonesignatureproperty.idxbroker.com/idx/map/mapsearch';
+  mapLink.textContent='Open Map Search';
+  alt.append(mapLink);
+  shell.append(intro, card, alt);
+  form.insertBefore(shell, form.firstChild);
+
+  const bin=document.createElement('div');
+  bin.className='bsp-adv-sources';
+  form.appendChild(bin);
+
+  const sheet=sheetShell();
+  const body=sheet.body;
+  const bd=document.getElementById('IDX-bd');
+  const tb=document.getElementById('IDX-tb');
+  const pt=document.getElementById('IDX-pt');
+  const subType=document.getElementById('IDX-propSubType');
+  const reduced=document.getElementById('IDX-reduced');
+  const days=document.getElementById('IDX-add');
+  const status=document.getElementById('IDX-propStatus');
+  const per=document.getElementById('IDX-per');
+  const srt=document.getElementById('IDX-srt');
+  const sqMin=document.getElementById('IDX-a_sqFt_min');
+  const sqMax=document.getElementById('IDX-a_sqFt_max');
+  const acreFields=[...form.querySelectorAll('input, select')].filter(el=>/acre/i.test((el.name||'')+(el.id||'')) && el.id!=='IDX-acres');
+  const acreMin=acreFields.find(el=>/min/i.test((el.name||'')+(el.id||'')))||null;
+  const acreMax=acreFields.find(el=>/max/i.test((el.name||'')+(el.id||'')))||null;
+  const yearMin=document.getElementById('IDX-a_yearBuilt_min');
+  const yearMax=document.getElementById('IDX-a_yearBuilt_max');
+  const exterior=document.getElementById('IDX-a_exteriorFeatures');
+  const interior=document.getElementById('IDX-a_interiorFeatures');
+
+  if(bd){
+   const control=seg(bd, ['', '0', '1', '2', '3', '4', '5'], 'row');
+   painters.push(control.paint);
+   body.appendChild(section('Beds', control));
+  }
+  if(tb){
+   const control=seg(tb, ['', '1', '2', '3', '4'], 'row');
+   painters.push(control.paint);
+   body.appendChild(section('Baths', control));
+  }
+  if(pt){
+   const control=seg(pt, null, 'grid');
+   painters.push(control.paint);
+   watchPt(pt);
+   body.appendChild(section('Property class', control));
+   bin.appendChild(pt.closest('.IDX-control-group')||pt);
+  }
+  if(subType){
+   typeMount=document.createElement('div');
+   painters.push(()=>{ if(typeMount.paint) typeMount.paint(); });
+   body.appendChild(section('Home type', typeMount));
+   rebuildTypes();
+   const group=subType.closest('.IDX-control-group');
+   if(group) bin.appendChild(group);
+  }
+  if(sqMin || sqMax){
+   body.appendChild(section('Square feet', pair(sqMin, sqMax, 'Min', 'Max')));
+  }
+  if(acreMin || acreMax){
+   body.appendChild(section('Acres', pair(acreMin, acreMax, 'Min', 'Max')));
+  }else{
+   const acres=document.getElementById('IDX-acres');
+   const group=acres && acres.closest('.IDX-control-group');
+   if(group && realOptions(acres).length>1){
+    group.classList.add('bsp-sheet-select');
+    body.appendChild(section('Acres', group));
+    bindForm(group);
+   }else if(group) bin.appendChild(group);
+  }
+  if(reduced && realOptions(reduced).length>1){
+   const control=seg(reduced);
+   painters.push(control.paint);
+   body.appendChild(section('Price reduction', control));
+   const group=reduced.closest('.IDX-control-group');
+   if(group) bin.appendChild(group);
+  }
+  if(days){
+   const group=days.closest('.IDX-control-group');
+   if(realOptions(days).length>1){
+    const control=seg(days);
+    painters.push(control.paint);
+    body.appendChild(section('Max days listed', control));
+    if(group) bin.appendChild(group);
+   }else if(group){
+    group.classList.add('bsp-sheet-select');
+    body.appendChild(section('Max days listed', group));
+    bindForm(group);
+   }
+  }
+  if(status){
+   const control=tiles(status);
+   control.classList.add('bsp-tiles--status');
+   painters.push(control.paint);
+   body.appendChild(section('Status', control));
+   const group=status.closest('.IDX-control-group');
+   if(group) bin.appendChild(group);
+  }
+  if(exterior && realOptions(exterior).some(opt=>opt.value)){
+   const control=checks(exterior);
+   painters.push(control.paint);
+   body.appendChild(section('Amenities', control));
+   const group=exterior.closest('.IDX-control-group')||exterior.closest('.IDX-advancedPair')||exterior.parentElement;
+   if(group && group!==form) bin.appendChild(group);
+  }
+  if(interior && realOptions(interior).some(opt=>opt.value)){
+   const control=checks(interior);
+   painters.push(control.paint);
+   body.appendChild(section('Interior', control));
+   const group=interior.closest('.IDX-advancedPair')||interior.closest('.IDX-control-group')||interior.parentElement;
+   if(group && group!==form) bin.appendChild(group);
+  }
+  if(yearMin || yearMax){
+   body.appendChild(section('Year built', pair(yearMin, yearMax, 'Min', 'Max')));
+  }
+  const tools=document.createElement('div');
+  tools.className='bsp-sheet-tools';
+  [per, srt].forEach(select=>{
+   if(!select) return;
+   const group=select.closest('.IDX-control-group');
+   if(group){
+    group.classList.add('bsp-sheet-select');
+    tools.appendChild(group);
+    bindForm(group);
+   }
+  });
+  if(tools.childElementCount) body.appendChild(tools);
+
+  const advanced=document.getElementById('IDX-advancedSearchFields');
+  if(advanced){
+   const extra=document.createElement('details');
+   extra.className='bsp-sheet-extra';
+   const sum=document.createElement('summary');
+   sum.textContent='More property details';
+   extra.append(sum, advanced);
+   bindForm(advanced);
+   body.appendChild(extra);
+  }
+  const header=document.querySelector('.IDX-advanced-fields__header');
+  if(header) bin.appendChild(header);
+
+  groups.forEach(group=>{
+   if(!group.isConnected || group.closest('.bsp-adv, .bsp-sheet, .bsp-adv-sources')) return;
+   if(labelOf(group)) bin.appendChild(group);
+  });
+
+  document.body.appendChild(sheet);
+  sheet.body.insertBefore(modeBar(), sheet.body.firstChild);
+  more.addEventListener('click',()=>sheet.open());
+  form.addEventListener('submit',()=>{
+   const sel=document.getElementById('IDX-ccz-select');
+   const ccz=document.getElementById('IDX-ccz');
+   if(!sel||!ccz) return;
+   const picked=[...sel.selectedOptions].filter(opt=>opt.value);
+   const brentwood=picked.find(opt=>/brentwood/i.test(opt.textContent||''));
+   if(brentwood){
+    ccz.value='';
+    [['csv_city','Brentwood'],['csv_zipcode','94513']].forEach(([name,value])=>{
+     let el=form.querySelector('input[data-bsp-loc="'+name+'"]');
+     if(!el){ el=document.createElement('input'); el.type='hidden'; el.name=name; el.dataset.bspLoc=name; form.appendChild(el); }
+     el.value=value;
+    });
+    return;
+   }
+   if(picked.length && (!ccz.value || /^(city|county|zipcode)$/i.test(ccz.value))){
+    ccz.value=picked.map(opt=>(opt.getAttribute('data-type')||'city')+'-'+opt.value).join(',');
+   }
+  });
+  sheet.reset.addEventListener('click',()=>{ if(initial) restore(initial); });
+
+  const submits=[...form.querySelectorAll('button, input[type="submit"]')].filter(el=>{
+   const type=(el.getAttribute('type')||(el.tagName==='BUTTON'?'submit':'')).toLowerCase();
+   return type==='submit';
+  });
+  const primary=submits.find(el=>!el.classList.contains('IDX-hidden-desktop'))||submits[0];
+  if(primary){
+   submits.forEach(el=>{ if(el!==primary) el.classList.add('bsp-adv-spare-submit'); });
+   primary.classList.remove('IDX-hidden-mobile','IDX-hidden-desktop');
+   goSlot.appendChild(primary);
+  }
+
+  form.classList.add('bsp-adv-on');
+  form.dataset.bspAdv='1';
+  initial=snapshot(form);
+  paint();
+  return true;
+ }
+
+ function kick(){
+  if(building) return;
+  building=true;
+  try{ build(); }catch(e){}
+  building=false;
+ }
+ kick();
+ document.addEventListener('DOMContentLoaded', kick);
+ window.addEventListener('load', kick);
+ let tries=0;
+ const timer=setInterval(()=>{
+  tries+=1;
+  kick();
+  if(document.getElementById(FORM_ID)?.dataset.bspAdv==='1' || tries>24) clearInterval(timer);
+ }, 300);
+})();
