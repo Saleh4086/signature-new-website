@@ -681,6 +681,26 @@ body.bsp-idx.bsp-native-map .pm-ccz-fly-to-field input.ti-new-tag-input{
 body.bsp-idx.bsp-native-map .pm-ccz-fly-to-field input::placeholder{
   color:#566078!important;-webkit-text-fill-color:#566078!important;opacity:1!important;
 }
+/* Map search: the chosen city shows as a tidy navy tag inside the field, not a loose blue box above it. */
+body.bsp-idx.bsp-native-map .pm-ccz-fly-to-field .ti-tags{display:flex!important;flex-wrap:nowrap!important;align-items:center!important;gap:6px}
+body.bsp-idx.bsp-native-map .pm-ccz-fly-to-field li.ti-tag{
+  position:static!important;float:none!important;margin:0!important;flex:0 1 auto;max-width:100%;
+  padding:4px 6px 4px 10px!important;border-radius:8px!important;background:#182646!important;color:#F7F4EE!important;
+  font:600 13px/1.2 var(--sans),Inter,sans-serif!important;display:inline-flex!important;align-items:center;
+}
+body.bsp-idx.bsp-native-map .pm-ccz-fly-to-field li.ti-tag span,
+body.bsp-idx.bsp-native-map .pm-ccz-fly-to-field li.ti-tag .ti-content,
+body.bsp-idx.bsp-native-map .pm-ccz-fly-to-field li.ti-tag .ti-tag-center{color:#F7F4EE!important;-webkit-text-fill-color:#F7F4EE!important;white-space:nowrap;position:static!important}
+body.bsp-idx.bsp-native-map .pm-ccz-fly-to-field li.ti-tag .ti-actions{display:inline-flex;align-items:center;margin-left:6px}
+body.bsp-idx.bsp-native-map .pm-ccz-fly-to-field li.ti-tag .ti-icon-close{color:#D9B970!important}
+body.bsp-idx.bsp-native-map .pm-ccz-fly-to-field .ti-new-tag-input-wrapper{flex:0 0 0!important;width:0!important;min-width:0!important;overflow:hidden!important}
+body.bsp-idx.bsp-native-map .pm-ccz-fly-to-field li.ti-tag ~ .ti-new-tag-input-wrapper{display:none!important}
+/* Map search filter panels are white: dark readable labels, selects and placeholders (were pale on white). */
+body.bsp-idx.bsp-native-map #prime-map-search--filter-bar__filter select,
+body.bsp-idx.bsp-native-map #prime-map-search--filter-bar__filter input:not(.ti-new-tag-input){color:#1B2440!important;-webkit-text-fill-color:#1B2440!important}
+body.bsp-idx.bsp-native-map #prime-map-search--filter-bar__filter input:not(.ti-new-tag-input)::placeholder{color:#6B7488!important;-webkit-text-fill-color:#6B7488!important;opacity:1!important}
+body.bsp-idx.bsp-native-map .full-screen-mobile-show #min-beds-filter-value,
+body.bsp-idx.bsp-native-map .full-screen-mobile-show #min-baths-filter-value{color:#31393D!important}
 body.bsp-idx.bsp-native-map .idx-nav-button-container-mobile select{
   box-sizing:border-box;width:100%;min-height:42px;padding:8px 12px;border-radius:10px;
   background:#F7F4EE!important;color:#141A2E!important;-webkit-text-fill-color:#141A2E!important;
