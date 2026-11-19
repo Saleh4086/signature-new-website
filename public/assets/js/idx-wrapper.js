@@ -1123,6 +1123,7 @@
 
  const SALE_PT='1', LEASE_PT='3';
  let deal='sale';
+ let dealLock=false;
  let saleLpHTML='', saleHpHTML='', typeMount=null;
  const RENT_TYPES=['Single Family Residence','Condominium','Townhouse','Apartment'];
  function money(n){return '$'+Number(n).toLocaleString('en-US')+(Number(n)>=10000?'+':'');}
@@ -1178,18 +1179,40 @@
    });
   };
  }
- function setDeal(next){
-  if(deal===next) return;
+ function adoptDeal(next, refresh){
+  const changed=refresh || deal!==next;
   deal=next;
   document.querySelectorAll('.bsp-mode-btn').forEach(btn=>btn.classList.toggle('is-on', btn.dataset.deal===deal));
+  if(changed){
+   applyPrices();
+   const sub=document.getElementById('IDX-propSubType');
+   if(sub) setMulti(sub, []);
+   rebuildTypes();
+   setTimeout(rebuildTypes, 800);
+   setTimeout(rebuildTypes, 1700);
+  }
+  paint();
+ }
+ function setDeal(next){
+  if(dealLock) return;
   const pt=document.getElementById('IDX-pt');
-  const sub=document.getElementById('IDX-propSubType');
-  if(pt) setSingle(pt, deal==='rent'?LEASE_PT:SALE_PT);
-  applyPrices();
-  if(sub) setMulti(sub, []);
-  rebuildTypes();
-  setTimeout(rebuildTypes, 800);
-  setTimeout(rebuildTypes, 1700);
+  const want=next==='rent'?LEASE_PT:SALE_PT;
+  const ptChanged=!!(pt && pt.value!==want);
+  dealLock=true;
+  try{
+   if(ptChanged) setSingle(pt, want);
+   adoptDeal(next, deal!==next || ptChanged);
+  }finally{ dealLock=false; }
+ }
+ function watchPt(pt){
+  const onPt=()=>{
+   if(dealLock) return;
+   dealLock=true;
+   try{ adoptDeal(pt.value===LEASE_PT?'rent':'sale', true); }
+   finally{ dealLock=false; }
+  };
+  if(window.jQuery){ try{ window.jQuery(pt).on('change', onPt); return; }catch(e){} }
+  pt.addEventListener('change', onPt);
  }
  function modeBar(){
   const bar=document.createElement('div');
@@ -1301,6 +1324,7 @@
   if(pt){
    const control=seg(pt, null, 'grid');
    painters.push(control.paint);
+   watchPt(pt);
    body.appendChild(section('Property class', control));
    bin.appendChild(pt.closest('.IDX-control-group')||pt);
   }
