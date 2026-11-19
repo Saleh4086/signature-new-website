@@ -925,9 +925,9 @@
   });
  }
 
- function seg(select, limit){
+ function seg(select, limit, mode){
   const row=document.createElement('div');
-  row.className='bsp-seg';
+  row.className='bsp-seg'+(mode?' bsp-seg--'+mode:'');
   row.setAttribute('role','group');
   let options=realOptions(select).filter(opt=>opt.value!=='' || opt.text);
   if(limit) options=options.filter(opt=>limit.includes(opt.value));
@@ -1202,17 +1202,17 @@
   const interior=document.getElementById('IDX-a_interiorFeatures');
 
   if(bd){
-   const control=seg(bd, ['', '0', '1', '2', '3', '4', '5']);
+   const control=seg(bd, ['', '0', '1', '2', '3', '4', '5'], 'row');
    painters.push(control.paint);
    body.appendChild(section('Beds', control));
   }
   if(tb){
-   const control=seg(tb, ['', '1', '2', '3', '4']);
+   const control=seg(tb, ['', '1', '2', '3', '4'], 'row');
    painters.push(control.paint);
    body.appendChild(section('Baths', control));
   }
   if(pt){
-   const control=seg(pt);
+   const control=seg(pt, null, 'grid');
    painters.push(control.paint);
    body.appendChild(section('Property class', control));
    bin.appendChild(pt.closest('.IDX-control-group')||pt);
