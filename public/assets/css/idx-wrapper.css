@@ -1254,3 +1254,31 @@ body.bsp-idx .select2-dropdown{background:#fff!important;color:#14203A!important
 body.bsp-idx .select2-results__option{color:#14203A!important;-webkit-text-fill-color:#14203A!important}
 body.bsp-idx .select2-results__option--highlighted{background:#182646!important;color:#F4E2B0!important;-webkit-text-fill-color:#F4E2B0!important}
 body.bsp-idx #blackstone-idx-content #idx-results-refinement .idx-dropdown__menu .select2-selection--single :is(span,.select2-selection__rendered){color:#14203A!important;-webkit-text-fill-color:#14203A!important}
+
+/* All IDX select2 dropdown lists: white list, dark readable text, navy/gold highlight (2026-11-19) */
+body.bsp-idx .select2-container--open .select2-dropdown{background:#fff!important;border:1px solid #C9A961!important;border-radius:10px!important;box-shadow:0 12px 28px rgba(0,0,0,.4)!important;overflow:hidden}
+body.bsp-idx .select2-container--open .select2-dropdown :is(.select2-results,.select2-results__options,.select2-search){background:#fff!important}
+body.bsp-idx .select2-container--open .select2-dropdown .select2-search__field{background:#fff!important;color:#14203A!important;-webkit-text-fill-color:#14203A!important;border:1px solid #C9A961!important;border-radius:6px!important}
+body.bsp-idx .select2-container--open .select2-dropdown :is(.select2-results__option,.select2-results__option *,.IDX-custom-form-element__group,.IDX-custom-form-element__label){background:transparent!important;color:#14203A!important;-webkit-text-fill-color:#14203A!important;opacity:1!important;filter:none!important}
+body.bsp-idx .select2-container--open .select2-dropdown .select2-results__option{padding:8px 12px!important}
+body.bsp-idx .select2-container--open .select2-dropdown :is(.select2-results__option--highlighted,.select2-results__option[aria-selected=true]),
+body.bsp-idx .select2-container--open .select2-dropdown :is(.select2-results__option--highlighted,.select2-results__option[aria-selected=true]) *{background:#182646!important;color:#F4E2B0!important;-webkit-text-fill-color:#F4E2B0!important}
+
+/* (strong) All IDX select2 dropdown lists: white list, dark readable text, navy/gold highlight (2026-11-19) */
+html body.bsp-idx #blackstone-idx-content .select2-container.select2-container--open .select2-dropdown{background:#fff!important;border:1px solid #C9A961!important;border-radius:10px!important;box-shadow:0 12px 28px rgba(0,0,0,.4)!important;overflow:hidden}
+html body.bsp-idx #blackstone-idx-content .select2-container.select2-container--open .select2-dropdown :is(.select2-results,.select2-results__options,.select2-search){background:#fff!important}
+html body.bsp-idx #blackstone-idx-content .select2-container.select2-container--open .select2-dropdown .select2-search__field{background:#fff!important;color:#14203A!important;-webkit-text-fill-color:#14203A!important;border:1px solid #C9A961!important;border-radius:6px!important}
+html body.bsp-idx #blackstone-idx-content .select2-container.select2-container--open .select2-dropdown :is(.select2-results__option,.select2-results__option *,.IDX-custom-form-element__group,.IDX-custom-form-element__label){background:transparent!important;color:#14203A!important;-webkit-text-fill-color:#14203A!important;opacity:1!important;filter:none!important}
+html body.bsp-idx #blackstone-idx-content .select2-container.select2-container--open .select2-dropdown .select2-results__option{padding:8px 12px!important}
+html body.bsp-idx #blackstone-idx-content .select2-container.select2-container--open .select2-dropdown :is(.select2-results__option--highlighted,.select2-results__option[aria-selected=true]),
+html body.bsp-idx #blackstone-idx-content .select2-container.select2-container--open .select2-dropdown :is(.select2-results__option--highlighted,.select2-results__option[aria-selected=true]) *{background:#182646!important;color:#F4E2B0!important;-webkit-text-fill-color:#F4E2B0!important}
+
+/* (strong2) All IDX select2 dropdown lists: white list, dark readable text, navy/gold highlight (2026-11-19) */
+html body.bsp-idx .select2-container.select2-container--open .select2-dropdown{background:#fff!important;border:1px solid #C9A961!important;border-radius:10px!important;box-shadow:0 12px 28px rgba(0,0,0,.4)!important;overflow:hidden}
+html body.bsp-idx .select2-container.select2-container--open .select2-dropdown :is(.select2-results,.select2-results__options,.select2-search){background:#fff!important}
+html body.bsp-idx .select2-container.select2-container--open .select2-dropdown .select2-search__field{background:#fff!important;color:#14203A!important;-webkit-text-fill-color:#14203A!important;border:1px solid #C9A961!important;border-radius:6px!important}
+html body.bsp-idx .select2-container.select2-container--open .select2-dropdown :is(.select2-results__option,.select2-results__option *,.IDX-custom-form-element__group,.IDX-custom-form-element__label){background:transparent!important;color:#14203A!important;-webkit-text-fill-color:#14203A!important;opacity:1!important;filter:none!important}
+html body.bsp-idx .select2-container.select2-container--open .select2-dropdown .select2-results__option{padding:8px 12px!important}
+html body.bsp-idx .select2-container.select2-container--open .select2-dropdown :is(.select2-results__option--highlighted,.select2-results__option[aria-selected=true]),
+html body.bsp-idx .select2-container.select2-container--open .select2-dropdown :is(.select2-results__option--highlighted,.select2-results__option[aria-selected=true]) *{background:#182646!important;color:#F4E2B0!important;-webkit-text-fill-color:#F4E2B0!important}
+html body.bsp-idx .select2-container.select2-container--open .select2-dropdown :is(.select2-results__option,.IDX-custom-form-element__label){font-weight:500!important;font-size:15px!important}
