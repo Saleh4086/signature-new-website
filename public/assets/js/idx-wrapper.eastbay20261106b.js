@@ -1281,6 +1281,17 @@
   alt.append(document.createTextNode('Prefer the map? '));
   const mapLink=document.createElement('a');
   mapLink.href='https://blackstonesignatureproperty.idxbroker.com/idx/map/mapsearch';
+  mapLink.addEventListener('click',()=>{
+   /* Carry the chosen city, type, price, beds and baths into Map Search (it applies them on load). */
+   const MAP='https://blackstonesignatureproperty.idxbroker.com/idx/map/mapsearch';
+   const val=id=>{const el=document.getElementById(id);return el&&el.value?String(el.value).replace(/[^\d]/g,''):'';};
+   const parts=[];
+   const ccz=document.getElementById('IDX-ccz-select');
+   const picked=ccz?[...ccz.options].filter(o=>o.selected&&o.value):[];
+   if(picked.length===1&&picked[0].dataset.type==='city')parts.push('city%5B%5D='+encodeURIComponent(picked[0].value));
+   [['pt','IDX-pt'],['bd','IDX-bd'],['tb','IDX-tb'],['lp','IDX-lp'],['hp','IDX-hp']].forEach(([k,id])=>{const v=val(id);if(v)parts.push(k+'='+v);});
+   mapLink.href=MAP+(parts.length?'?'+parts.join('&'):'');
+  });
   mapLink.textContent='Open Map Search';
   alt.append(mapLink);
   shell.append(intro, card, alt);
@@ -1483,4 +1494,59 @@
   kick();
   if(document.getElementById(FORM_ID)?.dataset.bspAdv==='1' || tries>24) clearInterval(timer);
  }, 300);
+})();
+
+/* Map Search city and filter sync.
+   IDX Prime Map Search reads only centerlat, centerlong and zoom from the URL, so a city picked on
+   the main site was lost and the map listed every nearby city. The map's own city, price, beds,
+   baths and type filters are in its page state. When the link carries city[] (an IDX city id) or
+   pt, bd, tb, lp, hp, this sets those filters through the map's own controls so the pins, list
+   and Filter panel all show the chosen search. It touches only filter state. */
+(()=>{'use strict';
+ if(!location.pathname.includes('/idx/map/'))return;
+ const q=new URLSearchParams(location.search);
+ const cityId=(q.getAll('city[]')[0]||q.get('city')||'').replace(/\D/g,'');
+ const num=k=>{const v=(q.get(k)||'').replace(/[^\d]/g,'');return v?Number(v):0;};
+ const want={pt:num('pt'),bd:num('bd'),tb:num('tb'),lp:num('lp'),hp:num('hp')};
+ if(!cityId&&!want.pt&&!want.bd&&!want.tb&&!want.lp&&!want.hp)return;
+ const store=()=>{
+  try{
+   const app=document.querySelector('[data-v-app]');
+   const pinia=app&&app.__vue_app__.config.globalProperties.$pinia;
+   return pinia&&pinia._s.get('filter');
+  }catch(e){return null;}
+ };
+ const wait=(test,ms,every)=>new Promise(resolve=>{
+  const end=Date.now()+ms;
+  (function tick(){let v;try{v=test();}catch(e){v=null;}
+   if(v)return resolve(v);
+   if(Date.now()>end)return resolve(null);
+   setTimeout(tick,every||150);})();
+ });
+ async function run(){
+  const f=await wait(()=>{const s=store();return s&&s.CityOptions&&s.CityOptions.length&&s.PropertyTypeOptions&&s.PropertyTypeOptions.length&&s;},20000);
+  if(!f)return;
+  if(want.pt){const o=f.PropertyTypeOptions.find(x=>Number(x.id)===want.pt);if(o)f.updateSelectedPropertyType(o);}
+  if(want.bd)f.updateSelectedBeds(want.bd);
+  if(want.tb)f.updatedSelectedBaths(want.tb);
+  if(want.lp)f.updateSelectedMinPrice(want.lp);
+  if(want.hp)f.updateSelectedMaxPrice(want.hp);
+  if(!cityId)return;
+  const city=f.CityOptions.find(x=>String(x.id)===cityId);
+  if(!city)return;
+  const box=await wait(()=>document.querySelector('#prime-map-search--filter-bar__flyto input'),10000);
+  if(!box)return;
+  const label=city.text||city.name+' (city)';
+  const setter=Object.getOwnPropertyDescriptor(HTMLInputElement.prototype,'value').set;
+  box.focus();
+  setter.call(box,city.name);
+  box.dispatchEvent(new Event('input',{bubbles:true}));
+  const opt=await wait(()=>{
+   const list=document.getElementById('fly-to-options-containers');if(!list)return null;
+   const items=[...list.querySelectorAll('*')].filter(e=>e.children.length===0&&e.textContent.trim()===label);
+   return items[0]||null;
+  },6000,100);
+  if(opt){opt.click();box.blur();}
+ }
+ run().catch(()=>{});
 })();

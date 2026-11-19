@@ -152,8 +152,8 @@
   // home search box → map search page
   $$('.chip[data-q]').forEach(c=>c.addEventListener('click',()=>{const i=$('#hq');if(i){i.value=c.dataset.q;$$('.chip[data-q]').forEach(x=>x.classList.toggle('on',x===c))}}));
   /* Home hero: city chips + Search open Map Search on that city.
-     /idx/map/mapsearch ignores city, csv_city, zipcode, and price/beds filters.
-     centerlat, centerlong, and zoom place the viewport. Homes in view are listed. */
+     /idx/map/mapsearch reads only centerlat, centerlong, and zoom from the URL. city[] (the IDX city id)
+     is passed too; the IDX page wrapper (idx-wrapper.js) applies it to the map's own City filter. */
   const MLS_MAP='https://blackstonesignatureproperty.idxbroker.com/idx/map/mapsearch';
   const MLS_ADV='https://blackstonesignatureproperty.idxbroker.com/idx/search/advanced';
   const EAST_BAY_CITIES={
@@ -178,6 +178,7 @@
     'alamo':[37.8502,-122.0322,13],
     'moraga':[37.8349,-122.1297,13]
   };
+  const EAST_BAY_CITY_IDS={'discovery bay':12362,'brentwood':5487,'oakley':33990,'antioch':1326,'concord':9979,'walnut creek':49777,'danville':11484,'pittsburg':36829,'byron':6627,'bay point':2894,'oakland':33960,'livermore':26815,'pleasanton':37058,'san ramon':41293,'lafayette':24916,'orinda':34695,'martinez':28719,'clayton':9039,'alamo':429,'moraga':31121};
   const EAST_BAY_ALIASES={
     discovbay:'discovery bay', discobay:'discovery bay', discoverybay:'discovery bay',
     discovery:'discovery bay', dbay:'discovery bay', 'd bay':'discovery bay', discoverypay:'discovery bay', 'discovery pay':'discovery bay',
@@ -216,7 +217,7 @@
     return null;
   }
   function mlsCityUrl(hit){
-    return MLS_MAP+'?centerlat='+encodeURIComponent(hit.lat)+'&centerlong='+encodeURIComponent(hit.lng)+'&zoom='+encodeURIComponent(hit.zoom);
+    return MLS_MAP+'?centerlat='+encodeURIComponent(hit.lat)+'&centerlong='+encodeURIComponent(hit.lng)+'&zoom='+encodeURIComponent(hit.zoom)+(EAST_BAY_CITY_IDS[hit.canon]?'&city%5B%5D='+EAST_BAY_CITY_IDS[hit.canon]:'');
   }
   function goMlsCity(raw){
     const hit=resolveEastBay(raw);
