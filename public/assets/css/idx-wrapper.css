@@ -1,7 +1,7 @@
 /* Match the existing website; IDX retains its search, results and detail behavior. */
-body.bsp-idx{background:var(--night);color:var(--text)}
+body.bsp-idx{background:var(--night);color:var(--text);overflow-x:clip}
 .bsp-idx #blackstone-idx-content{padding-top:var(--hdr);min-height:calc(100svh - 70px);background:var(--night)}
-.bsp-idx #IDX-main{max-width:none;width:100%;margin:0;padding:16px;color:var(--text);background:var(--night);font-family:var(--sans)}
+.bsp-idx #IDX-main{box-sizing:border-box;max-width:100%;width:100%;margin:0;padding:16px;color:var(--text);background:var(--night);font-family:var(--sans)}
 .bsp-idx #IDX-main h1,.bsp-idx #IDX-main h2,.bsp-idx #IDX-main h3{color:var(--gold-2);font-family:var(--serif)}
 .bsp-idx #IDX-main h1{font-size:clamp(1.7rem,3vw,2.5rem)}
 .bsp-idx #IDX-main a{color:var(--gold-2)}
@@ -776,75 +776,135 @@ body.bsp-idx #IDX-map .marker-cluster{background-color:rgba(181,226,140,.6)}
 body.bsp-idx #IDX-map .marker-cluster div{background-color:rgba(110,204,57,.6)}
 body.bsp-idx #blackstone-idx-content #IDX-map .marker-cluster span{color:#323B40!important}
 
-/* Advanced Search: one calm row, everything else behind More filters. */
-body.bsp-idx #IDX-searchForm.bsp-adv-on{max-width:none;margin:0}
-body.bsp-idx #IDX-searchForm.bsp-adv-on .bsp-adv-empty{display:none!important}
-body.bsp-idx #IDX-searchForm.bsp-adv-on .bsp-adv-main{
-  display:grid;grid-template-columns:minmax(210px,1.15fr) minmax(390px,1.9fr) minmax(120px,.55fr) minmax(120px,.55fr) auto;
-  gap:14px 16px;align-items:end;margin:6px 0 16px;
+/* Advanced Search: centered card, one border per field, nothing wider than its column. */
+body.bsp-idx #IDX-searchForm.bsp-adv-on{
+  box-sizing:border-box;width:100%;max-width:1200px;margin:8px auto 32px;padding:0 24px;
 }
-body.bsp-idx #IDX-searchForm.bsp-adv-on .bsp-adv-price{display:grid;grid-template-columns:1fr 1fr;gap:10px;min-width:0}
+body.bsp-idx #IDX-searchForm.bsp-adv-on *{box-sizing:border-box}
+body.bsp-idx #IDX-searchForm.bsp-adv-on .bsp-adv,
+body.bsp-idx #IDX-searchForm.bsp-adv-on .bsp-adv-card,
+body.bsp-idx #IDX-searchForm.bsp-adv-on .bsp-adv-main,
+body.bsp-idx #IDX-searchForm.bsp-adv-on .bsp-adv-panel,
+body.bsp-idx #IDX-searchForm.bsp-adv-on .bsp-adv-grid,
+body.bsp-idx #IDX-searchForm.bsp-adv-on .bsp-adv-section,
+body.bsp-idx #IDX-searchForm.bsp-adv-on #IDX-advancedSearchFields,
+body.bsp-idx #IDX-searchForm.bsp-adv-on #IDX-advancedFieldsMod-1{
+  width:100%;max-width:100%;min-width:0;
+}
+body.bsp-idx #IDX-searchForm.bsp-adv-on .bsp-adv-empty{display:none!important}
+body.bsp-idx #IDX-searchForm.bsp-adv-on .bsp-adv-intro{margin:2px 0 16px}
+body.bsp-idx #IDX-searchForm.bsp-adv-on .bsp-adv-title{
+  margin:0 0 6px!important;font-family:var(--serif),"Cormorant Garamond",serif!important;
+  font-weight:600!important;font-size:clamp(2rem,3.2vw,2.7rem)!important;line-height:1.05!important;
+  letter-spacing:.01em;color:#F4E2B0!important;
+}
+body.bsp-idx #IDX-searchForm.bsp-adv-on .bsp-adv-sub{
+  margin:0;max-width:42rem;color:#C5CDDE;font:400 1rem/1.5 var(--sans),Inter,sans-serif;
+}
+body.bsp-idx #IDX-searchForm.bsp-adv-on .bsp-adv-card{
+  background:linear-gradient(180deg,rgba(16,26,58,.92),rgba(10,16,36,.78));
+  border:1px solid rgba(217,185,112,.34);border-radius:18px;padding:22px 22px 18px;
+  box-shadow:0 22px 48px -32px rgba(0,0,0,.85);
+}
+body.bsp-idx #IDX-searchForm.bsp-adv-on .bsp-adv-main{
+  display:grid;grid-template-columns:minmax(0,1.35fr) minmax(0,1.45fr) minmax(0,.72fr) minmax(0,.72fr) auto;
+  gap:14px 14px;align-items:end;margin:0 0 14px;width:100%;
+}
+body.bsp-idx #IDX-searchForm.bsp-adv-on .bsp-adv-price{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:10px;min-width:0}
+body.bsp-idx #IDX-searchForm.bsp-adv-on .bsp-adv-where,
+body.bsp-idx #IDX-searchForm.bsp-adv-on .bsp-adv-price,
+body.bsp-idx #IDX-searchForm.bsp-adv-on .bsp-adv-beds,
+body.bsp-idx #IDX-searchForm.bsp-adv-on .bsp-adv-baths,
+body.bsp-idx #IDX-searchForm.bsp-adv-on .bsp-adv-go{min-width:0;max-width:100%}
 body.bsp-idx #IDX-searchForm.bsp-adv-on .bsp-adv-main .IDX-control-group,
 body.bsp-idx #IDX-searchForm.bsp-adv-on .bsp-adv-grid .IDX-control-group,
-body.bsp-idx #IDX-searchForm.bsp-adv-on .IDX-controls{
-  float:none!important;width:100%!important;max-width:none!important;min-width:0;
-  margin:0!important;padding:0!important;clear:none!important;box-sizing:border-box;
+body.bsp-idx #IDX-searchForm.bsp-adv-on .IDX-controls,
+body.bsp-idx #IDX-searchForm.bsp-adv-on .IDX-advancedPair,
+body.bsp-idx #IDX-searchForm.bsp-adv-on .IDX-advancedWrap{
+  float:none!important;width:100%!important;max-width:100%!important;min-width:0!important;
+  margin:0!important;padding:0!important;clear:none!important;
 }
-body.bsp-idx #IDX-searchForm.bsp-adv-on .select2-container{width:100%!important;max-width:100%!important}
+body.bsp-idx #IDX-searchForm.bsp-adv-on .select2-container,
+body.bsp-idx #IDX-searchForm.bsp-adv-on .select2-container .selection,
+body.bsp-idx #IDX-searchForm.bsp-adv-on .select2-search,
+body.bsp-idx #IDX-searchForm.bsp-adv-on .select2-search__field{
+  width:100%!important;max-width:100%!important;min-width:0!important;
+}
 body.bsp-idx #IDX-searchForm.bsp-adv-on .IDX-control-group label,
-body.bsp-idx #IDX-searchForm.bsp-adv-on .IDX-control-group legend{
+body.bsp-idx #IDX-searchForm.bsp-adv-on .IDX-control-group legend,
+body.bsp-idx #IDX-searchForm.bsp-adv-on .IDX-advancedWrap label{
   display:block;margin:0 0 6px!important;
   font:600 .72rem/1.3 var(--sans),Inter,sans-serif!important;
   letter-spacing:.08em;text-transform:uppercase;color:#C5CDDE!important;
 }
 body.bsp-idx #IDX-searchForm.bsp-adv-on .bsp-adv-go :is(button,input[type=submit]){
-  box-sizing:border-box;width:100%;min-width:148px;min-height:52px!important;margin:0!important;padding:0 28px!important;
+  box-sizing:border-box;width:100%;min-width:0;min-height:52px!important;margin:0!important;padding:0 22px!important;
   border-radius:999px!important;border:1px solid #D9B970!important;
   background:linear-gradient(135deg,#F4E2B0,#D9B970)!important;color:#141A2E!important;-webkit-text-fill-color:#141A2E!important;
-  font:600 1rem/1 var(--sans),Inter,sans-serif!important;letter-spacing:.06em;text-transform:uppercase;cursor:pointer;
+  font:600 .95rem/1 var(--sans),Inter,sans-serif!important;letter-spacing:.06em;text-transform:uppercase;cursor:pointer;white-space:nowrap;
 }
 body.bsp-idx #IDX-searchForm.bsp-adv-on .bsp-adv-go :is(button,input[type=submit]):hover{background:#F4E2B0!important}
 body.bsp-idx #IDX-searchForm.bsp-adv-on .bsp-adv-more{
-  display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:44px;margin:0 0 4px;padding:0 18px;
+  display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:44px;margin:2px 0 0;padding:0 18px;
   border-radius:999px;border:1px solid rgba(217,185,112,.55)!important;background:transparent!important;
   color:#F4E2B0!important;-webkit-text-fill-color:#F4E2B0!important;
   font:600 .78rem/1 var(--sans),Inter,sans-serif!important;letter-spacing:.08em;text-transform:uppercase;cursor:pointer;
 }
 body.bsp-idx #IDX-searchForm.bsp-adv-on .bsp-adv-more:hover{border-color:#F4E2B0!important;background:#17234b!important}
 body.bsp-idx #IDX-searchForm.bsp-adv-on .bsp-adv-more:focus-visible,
-body.bsp-idx #IDX-searchForm.bsp-adv-on .bsp-adv-go :is(button,input):focus-visible{outline:2px solid #F4E2B0;outline-offset:3px}
+body.bsp-idx #IDX-searchForm.bsp-adv-on .bsp-adv-go :is(button,input):focus-visible,
+body.bsp-idx #IDX-searchForm.bsp-adv-on .bsp-adv-alt a:focus-visible{outline:2px solid #F4E2B0;outline-offset:3px}
 body.bsp-idx #IDX-searchForm.bsp-adv-on .bsp-adv-spare-submit{display:none!important}
-body.bsp-idx #IDX-searchForm.bsp-adv-on .bsp-adv-panel{margin-top:8px;padding-top:4px;border-top:1px solid rgba(217,185,112,.28)}
+body.bsp-idx #IDX-searchForm.bsp-adv-on .bsp-adv-panel{margin-top:8px;padding-top:6px}
 body.bsp-idx #IDX-searchForm.bsp-adv-on .bsp-adv-panel[hidden]{display:none!important}
-body.bsp-idx #IDX-searchForm.bsp-adv-on .bsp-adv-section{margin:18px 0 6px}
-body.bsp-idx #IDX-searchForm.bsp-adv-on .bsp-adv-section h2{
-  margin:0 0 12px!important;font-family:var(--serif),"Cormorant Garamond",serif!important;
-  font-size:1.45rem!important;font-weight:600!important;letter-spacing:.01em;color:#F4E2B0!important;
-}
-body.bsp-idx #IDX-searchForm.bsp-adv-on .bsp-adv-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px 18px}
-@media(max-width:900px){
-  body.bsp-idx #IDX-searchForm.bsp-adv-on .bsp-adv-main{grid-template-columns:1fr 1fr}
-  body.bsp-idx #IDX-searchForm.bsp-adv-on .bsp-adv-where,
-  body.bsp-idx #IDX-searchForm.bsp-adv-on .bsp-adv-go{grid-column:1 / -1}
-}
+body.bsp-idx #IDX-searchForm.bsp-adv-on .bsp-adv-section{margin:28px 0 4px}
+body.bsp-idx #IDX-searchForm.bsp-adv-on .bsp-adv-section h2,
 body.bsp-idx #IDX-searchForm.bsp-adv-on .IDX-advanced-fields__title{
-  margin:0 0 12px!important;font-family:var(--serif),"Cormorant Garamond",serif!important;
-  font-size:1.45rem!important;font-weight:600!important;color:#F4E2B0!important;text-transform:none!important;
+  margin:0 0 16px!important;font-family:var(--serif),"Cormorant Garamond",serif!important;
+  font-size:1.55rem!important;font-weight:600!important;letter-spacing:.01em;line-height:1.15!important;
+  color:#F4E2B0!important;text-transform:none!important;
 }
-body.bsp-idx #IDX-searchForm.bsp-adv-on .IDX-advanced-fields__header{margin:18px 0 0;padding:0}
+body.bsp-idx #IDX-searchForm.bsp-adv-on .bsp-adv-grid,
 body.bsp-idx #IDX-searchForm.bsp-adv-on #IDX-advancedFieldsMod-1{
-  display:grid!important;grid-template-columns:1fr 1fr;gap:14px 18px;width:auto!important;float:none!important;
+  display:grid!important;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:16px 20px;
+  width:100%!important;max-width:100%!important;float:none!important;
 }
-body.bsp-idx #IDX-searchForm.bsp-adv-on .IDX-advancedSearchColumn{display:contents!important;float:none!important;width:auto!important}
-body.bsp-idx #IDX-searchForm.bsp-adv-on .IDX-advancedPair,
-body.bsp-idx #IDX-searchForm.bsp-adv-on .IDX-advancedWrap{float:none!important;width:auto!important;max-width:none!important;min-width:0}
-body.bsp-idx #IDX-searchForm.bsp-adv-on .bsp-adv-price :is(.select2-chosen,.select2-selection__rendered){
-  overflow:hidden!important;text-overflow:clip!important;white-space:nowrap!important;
+body.bsp-idx #IDX-searchForm.bsp-adv-on .IDX-advanced-fields__header{margin:28px 0 0;padding:0}
+body.bsp-idx #IDX-searchForm.bsp-adv-on .IDX-advancedSearchColumn{display:contents!important;float:none!important;width:auto!important;max-width:100%!important;min-width:0!important}
+body.bsp-idx #IDX-searchForm.bsp-adv-on .bsp-adv-alt{
+  margin:20px 0 0;color:#9AA3B8;font:400 .92rem/1.5 var(--sans),Inter,sans-serif;
 }
-@media(max-width:560px){
+body.bsp-idx #IDX-searchForm.bsp-adv-on .bsp-adv-alt a{
+  color:#F4E2B0!important;text-decoration:none;border-bottom:1px solid rgba(217,185,112,.45);
+}
+body.bsp-idx #IDX-searchForm.bsp-adv-on .bsp-adv-alt a:hover{color:#fff!important;border-bottom-color:#F4E2B0}
+/* One cream field. Multi-selects were a bordered shell around another cream box. */
+body.bsp-idx #IDX-searchForm.bsp-adv-on :is(.select2-container,.select2-selection,.select2-choices,.select2-choice){
+  background:#F7F4EE!important;border:1px solid rgba(217,185,112,.7)!important;border-radius:10px!important;
+  box-shadow:none!important;min-height:48px;
+}
+body.bsp-idx #IDX-searchForm.bsp-adv-on .select2-container{background:transparent!important;border:0!important;min-height:0;border-radius:0!important}
+body.bsp-idx #IDX-searchForm.bsp-adv-on :is(.select2-selection__rendered,.select2-chosen,.select2-choices .select2-search-field,.select2-search--inline,.select2-search__field){
+  background:transparent!important;border:0!important;box-shadow:none!important;border-radius:0!important;
+}
+body.bsp-idx #IDX-searchForm.bsp-adv-on .select2-selection--multiple .select2-selection__rendered{display:block;padding:6px 10px!important;margin:0!important}
+body.bsp-idx #IDX-searchForm.bsp-adv-on .select2-selection--multiple .select2-search__field{
+  margin:0!important;padding:4px 2px!important;height:28px!important;min-height:0!important;line-height:28px!important;
+}
+body.bsp-idx #IDX-searchForm.bsp-adv-on .select2-container--default .select2-selection--single .select2-selection__rendered,
+body.bsp-idx #IDX-searchForm.bsp-adv-on .select2-container .select2-choice{line-height:46px!important;padding-left:12px!important;padding-right:28px!important}
+@media(max-width:1100px){
+  body.bsp-idx #IDX-searchForm.bsp-adv-on .bsp-adv-main{grid-template-columns:minmax(0,1.25fr) minmax(0,1.35fr) minmax(0,.8fr) minmax(0,.8fr)}
+  body.bsp-idx #IDX-searchForm.bsp-adv-on .bsp-adv-go{grid-column:1 / -1}
+  body.bsp-idx #IDX-searchForm.bsp-adv-on .bsp-adv-go :is(button,input[type=submit]){width:auto;min-width:168px;padding:0 32px!important}
+}
+@media(max-width:720px){
+  body.bsp-idx #IDX-searchForm.bsp-adv-on{padding:0 14px}
+  body.bsp-idx #IDX-searchForm.bsp-adv-on .bsp-adv-card{padding:16px 14px 14px;border-radius:16px}
   body.bsp-idx #IDX-searchForm.bsp-adv-on .bsp-adv-main,
   body.bsp-idx #IDX-searchForm.bsp-adv-on .bsp-adv-price,
   body.bsp-idx #IDX-searchForm.bsp-adv-on .bsp-adv-grid,
-  body.bsp-idx #IDX-searchForm.bsp-adv-on #IDX-advancedFieldsMod-1{grid-template-columns:1fr}
+  body.bsp-idx #IDX-searchForm.bsp-adv-on #IDX-advancedFieldsMod-1{grid-template-columns:minmax(0,1fr)}
+  body.bsp-idx #IDX-searchForm.bsp-adv-on .bsp-adv-go :is(button,input[type=submit]),
   body.bsp-idx #IDX-searchForm.bsp-adv-on .bsp-adv-more{width:100%}
 }
